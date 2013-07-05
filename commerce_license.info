@@ -11,6 +11,5 @@ dependencies[] = entity_bundle_plugin
 dependencies[] = entityreference
 
 files[] = commerce_license.info.inc
-files[] = includes/commerce_license.controller.inc
 files[] = includes/commerce_license.inline_entity_form.inc
 files[] = includes/plugins/type/base.inc

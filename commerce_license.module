@@ -60,7 +60,7 @@ function commerce_license_entity_info() {
   $return = array(
     'commerce_license' => array(
       'label' => t('Commerce License'),
-      'controller class' => 'CommerceLicenseEntityController',
+      'controller class' => 'EntityBundlePluginEntityController',
       'base table' => 'commerce_license',
       'module' => 'commerce_license',
       'bundle plugin' => array(
