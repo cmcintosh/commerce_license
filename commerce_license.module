@@ -503,7 +503,7 @@ function commerce_license_field_widget_form(&$form, &$form_state, $field, $insta
     $default_mode = 'unlimited';
     $default_value = 5;
     $default_unit = 86400;
-    if (!empty($items[0])) {
+    if (!empty($items[0]) && !empty($items[0]['value'])) {
       $default_mode = 'limited';
       list($default_value, $default_unit) = commerce_license_duration_from_timestamp($items[0]['value']);
     }
@@ -518,6 +518,14 @@ function commerce_license_field_widget_form(&$form, &$form_state, $field, $insta
       '#default_value' => $default_mode,
       '#attributes' => array('class' => array('commerce-license-duration-mode')),
     );
+    // Get the correct path to the mode element, taking into account field
+    // parents (set when IEF is used, for example).
+    $mode_parents = array($element['#field_name'], LANGUAGE_NONE, 0, 'mode');
+    $mode_parents = array_merge($element['#field_parents'], $mode_parents);
+    $mode_path = array_shift($mode_parents);
+    foreach ($mode_parents as $mode_parent) {
+      $mode_path .= "[$mode_parent]";
+    }
     $description = t('Note: Months are 30 days long');
     $element['duration'] = array(
       '#type' => 'container',
@@ -540,7 +548,7 @@ function commerce_license_field_widget_form(&$form, &$form_state, $field, $insta
       '#attributes' => array('class' => array('commerce-license-duration container-inline')),
       '#states' => array(
         'visible' => array(
-          ':input[name="' . $element['#field_name'] . '[und][0][mode]"]' => array('value' => 'limited'),
+          ':input[name="' . $mode_path . '"]' => array('value' => 'limited'),
         ),
       ),
     );
