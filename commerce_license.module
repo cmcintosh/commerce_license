@@ -376,11 +376,11 @@ function commerce_license_commerce_order_update($order) {
 }
 
 /**
- * Implements hook_commerce_checkout_complete().
+ * Implements hook_commerce_payment_order_paid_in_full().
  *
- * Update the status of all licenses attached to a completed order.
+ * Update the status of all licenses attached to a paid order.
  */
-function commerce_license_commerce_checkout_complete($order) {
+function commerce_license_commerce_payment_order_paid_in_full($order, $transaction) {
   $wrapper = entity_metadata_wrapper('commerce_order', $order);
   foreach ($wrapper->commerce_line_items as $line_item_wrapper) {
     if (isset($line_item_wrapper->commerce_license)) {

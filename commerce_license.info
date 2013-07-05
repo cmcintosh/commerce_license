@@ -4,6 +4,7 @@ core = 7.x
 package = Commerce (contrib)
 dependencies[] = commerce_product
 dependencies[] = commerce_line_item
+dependencies[] = commerce_payment
 dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = entity_bundle_plugin
