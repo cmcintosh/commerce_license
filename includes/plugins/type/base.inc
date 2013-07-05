@@ -18,12 +18,21 @@ class CommerceLicenseException extends Exception { }
 interface CommerceLicenseInterface extends EntityBundlePluginProvideFieldsInterface {
 
   /**
-   * Returns an html representation of the license.
+   * Returns an html representation of the access details.
+   *
+   * The information contained within should be the required minimum
+   * for the customer to access the resource he purchased the rights to.
+   *
+   * If the customer purchased a file license, this method would output
+   * the link to that file.
+   * If the customer purchased a software subscription and the service
+   * returned access credentials, this method would return those
+   * access credentials.
    *
    * @return
-   *   A string with the rendered license.
+   *   An html string with the access details.
    */
-  public function resourceDetails();
+  public function accessDetails();
 
   /**
    * Returns whether a license is configurable.
@@ -133,9 +142,9 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
   }
 
   /**
-   * Implements CommerceLicenseInterface::resourceDetails().
+   * Implements CommerceLicenseInterface::accessDetails().
    */
-  public function resourceDetails() {}
+  public function accessDetails() {}
 
   /**
    * Implements CommerceLicenseInterface::isConfigurable().
@@ -224,9 +233,9 @@ class CommerceLicenseBroken extends Entity implements CommerceLicenseInterface, 
   }
 
   /**
-   * Implements CommerceLicenseInterface::resourceDetails().
+   * Implements CommerceLicenseInterface::accessDetails().
    */
-  public function resourceDetails() {}
+  public function accessDetails() {}
 
   /**
    * Implements CommerceLicenseInterface::isConfigurable().
