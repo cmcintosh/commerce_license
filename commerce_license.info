@@ -1,0 +1,15 @@
+name = Commerce License
+description = Provides a framework for selling access to local or remote resources.
+core = 7.x
+package = Commerce (contrib)
+dependencies[] = commerce_product
+dependencies[] = commerce_line_item
+dependencies[] = ctools
+dependencies[] = entity
+dependencies[] = entity_bundle_plugin
+dependencies[] = entityreference
+
+files[] = commerce_license.info.inc
+files[] = includes/commerce_license.controller.inc
+files[] = includes/commerce_license.inline_entity_form.inc
+files[] = includes/plugins/type/base.inc

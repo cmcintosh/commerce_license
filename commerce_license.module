@@ -1,0 +1,635 @@
+<?php
+
+/**
+ * @file
+ * Provides a framework for selling access to local or remote resources.
+ */
+
+// License statuses.
+define('COMMERCE_LICENSE_CREATED', 0);
+define('COMMERCE_LICENSE_PENDING', 1);
+define('COMMERCE_LICENSE_ACTIVE', 2);
+define('COMMERCE_LICENSE_EXPIRED', 3);
+define('COMMERCE_LICENSE_REVOKED', 4);
+
+/**
+ * Implements hook_menu().
+ */
+function commerce_license_menu() {
+  $items['admin/commerce/config/license'] = array(
+    'title' => 'License settings',
+    'description' => 'Configure general licensing settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_license_settings_form'),
+    'access arguments' => array('administer store'),
+    'file' => 'includes/commerce_license.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_commerce_checkout_pane_info().
+ */
+function commerce_license_commerce_checkout_pane_info() {
+  $checkout_panes = array();
+  $checkout_panes['commerce_license'] = array(
+    'title' => t('License information'),
+    'file' => 'includes/commerce_license.checkout_pane.inc',
+    'base' => 'commerce_license_information',
+    'page' => 'checkout',
+    'fieldset' => FALSE,
+    'enabled' => FALSE,
+  );
+  $checkout_panes['commerce_license_complete'] = array(
+    'title' => t('License checkout complete'),
+    'file' => 'includes/commerce_license.checkout_pane.inc',
+    'base' => 'commerce_license_complete',
+    'page' => 'complete',
+    'fieldset' => FALSE,
+    'enabled' => FALSE,
+  );
+
+  return $checkout_panes;
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function commerce_license_entity_info() {
+  $return = array(
+    'commerce_license' => array(
+      'label' => t('Commerce License'),
+      'controller class' => 'CommerceLicenseEntityController',
+      'base table' => 'commerce_license',
+      'module' => 'commerce_license',
+      'bundle plugin' => array(
+        'plugin type' => 'type',
+        // The name of the class to use when loading an invalid bundle.
+        'broken class' => 'CommerceLicenseBroken',
+      ),
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'license_id',
+        'bundle' => 'type',
+        'label' => 'title',
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'custom settings' => TRUE,
+        ),
+        'line_item' => array(
+          'label' => t('Line item summary'),
+          'custom settings' => TRUE,
+        ),
+      ),
+      'uri callback' => 'commerce_license_uri',
+      'metadata controller class' => 'CommerceLicenseMetadataController',
+      'views controller class' => 'EntityDefaultViewsController',
+      'access callback' => 'commerce_license_access',
+      'access arguments' => array(
+        'user key' => 'uid',
+      ),
+      'inline entity form' => array(
+        'controller' => 'CommerceLicenseInlineEntityFormController',
+      ),
+    ),
+  );
+  foreach (commerce_license_get_type_plugins() as $plugin_name => $plugin) {
+    $return['commerce_license']['bundles'][$plugin_name] = array(
+      'label' => $plugin['title'],
+    );
+  }
+  return $return;
+}
+
+/**
+ * Uri callback for the license entity.
+ */
+function commerce_license_uri($license) {
+  return array(
+    'path' => 'license/' . $license->license_id,
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function commerce_license_permission() {
+  return array(
+    'administer licenses' => array(
+      'title' => t('Administer licenses'),
+      'restrict access' => TRUE,
+    ),
+    'view own licenses' => array(
+      'title' => t('View own licenses'),
+    ),
+  );
+}
+
+/**
+ * Checks license access for various operations.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create' or
+ *   'delete'.
+ * @param $license
+ *   Optionally a license to check access for or for the create operation the
+ *   product type.
+ *   If nothing is given access permissions for all licenses are returned.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the current user.
+ */
+function commerce_license_access($op, $license = NULL, $account = NULL) {
+  if (!isset($account)) {
+    $account = $GLOBALS['user'];
+  }
+
+  // Grant all access to the admin user.
+  if (user_access('administer licenses', $account)) {
+    return TRUE;
+  }
+
+  if (isset($license) && $op == 'view') {
+    // If there's no user attached, the license is still in checkout, so
+    // allow it to be viewed freely.
+    if ($license->uid == 0) {
+      return TRUE;
+    }
+    return (($license->uid == $account->uid) && user_access('view own licenses', $account));
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_commerce_line_item_delete().
+ *
+ * Delete the associated license when removing a line item.
+ */
+function commerce_license_commerce_line_item_delete($line_item) {
+  if (!empty($line_item->commerce_license)) {
+    entity_delete('commerce_license', $line_item->commerce_license[LANGUAGE_NONE][0]['target_id']);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function commerce_license_ctools_plugin_type() {
+  return array(
+    'type' => array(
+      'use hooks' => FALSE,
+      'classes' => array('class'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function commerce_license_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'commerce_license') {
+    return 'includes/plugins/' . $plugin;
+  }
+}
+
+/**
+ * Get the available type plugins.
+ */
+function commerce_license_get_type_plugins() {
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('commerce_license', 'type');
+  foreach ($plugins as $key => $plugin) {
+    // Remove any invalid plugins.
+    $r = new ReflectionClass($plugin['class']);
+    if (!$r->hasMethod('isValid') || !call_user_func(array($plugin['class'], 'isValid'))) {
+      unset($plugins[$key]);
+    }
+  }
+  uasort($plugins, 'ctools_plugin_sort');
+  return $plugins;
+}
+
+/**
+ * Implements hook_flush_caches().
+ */
+function commerce_license_flush_caches() {
+  $product_types = variable_get('commerce_license_product_types', array());
+  $product_types = array_filter($product_types);
+  commerce_license_configure_product_types($product_types);
+
+  $line_item_types = variable_get('commerce_license_line_item_types', array());
+  $line_item_types = array_filter($line_item_types);
+  commerce_license_configure_line_item_types($line_item_types);
+}
+
+/**
+ * Ensures that the provided line item types have the required license fields.
+ *
+ * Fields:
+ * - commerce_license_type: a list(text) field pointing to a license type.
+ * - commerce_license_duration: a text field storing strtotime values.
+ *
+ * @param $types
+ *   An array of line item type machine names.
+ */
+function commerce_license_configure_product_types($types) {
+  // The list of types is empty, no need to create anything.
+  if (empty($types)) {
+    return;
+  }
+
+  $field = field_info_field('commerce_license_type');
+  if (!$field) {
+    $field = array(
+      'field_name' => 'commerce_license_type',
+      'type' => 'list_text',
+      'locked' => TRUE,
+      'settings' => array(
+        'allowed_values_function' => 'commerce_license_types_allowed_values',
+      ),
+    );
+    field_create_field($field);
+  }
+
+  // Compare the list of bundles this field is present on, with the needed
+  // list of bundles, and create any missing instances.
+  $existing = array();
+  if (!empty($field['bundles']['commerce_product'])) {
+    $existing = $field['bundles']['commerce_product'];
+  }
+  $diff = array_diff($types, $existing);
+  foreach ($diff as $new_bundle) {
+    $instance = array(
+      'field_name' => 'commerce_license_type',
+      'entity_type' => 'commerce_product',
+      'bundle' => $new_bundle,
+      'label' => t('License type'),
+      'required' => TRUE,
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+    );
+    field_create_instance($instance);
+  }
+
+  $field = field_info_field('commerce_license_duration');
+  if (!$field) {
+    $field = array(
+      'field_name' => 'commerce_license_duration',
+      'type' => 'number_integer',
+      'locked' => TRUE,
+    );
+    field_create_field($field);
+  }
+
+  // Compare the list of bundles this field is present on, with the needed
+  // list of bundles, and create any missing instances.
+  $existing = array();
+  if (!empty($field['bundles']['commerce_product'])) {
+    $existing = $field['bundles']['commerce_product'];
+  }
+  $diff = array_diff($types, $existing);
+  foreach ($diff as $new_bundle) {
+    $instance = array(
+      'field_name' => 'commerce_license_duration',
+      'entity_type' => 'commerce_product',
+      'bundle' => $new_bundle,
+      'label' => t('License expiration'),
+      'required' => TRUE,
+      'widget' => array(
+        'type' => 'commerce_license_duration',
+      ),
+    );
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Ensures that the provided line item types have the required license fields.
+ *
+ * Fields:
+ * - commerce_license: an entityreference field pointing to a license.
+ *
+ * @param $types
+ *   An array of line item type machine names.
+ */
+function commerce_license_configure_line_item_types($types) {
+  // The list of types is empty, no need to create anything.
+  if (empty($types)) {
+    return;
+  }
+
+  $field = field_info_field('commerce_license');
+  if (!$field) {
+    $field = array(
+      'settings' => array(
+        'handler' => 'base',
+        'target_type' => 'commerce_license',
+      ),
+      'field_name' => 'commerce_license',
+      'type' => 'entityreference',
+    );
+    field_create_field($field);
+  }
+
+  // Compare the list of bundles this field is present on, with the needed
+  // list of bundles, and create any missing instances.
+  $existing = array();
+  if (!empty($field['bundles']['commerce_line_item'])) {
+    $existing = $field['bundles']['commerce_line_item'];
+  }
+  $diff = array_diff($types, $existing);
+  foreach ($diff as $new_bundle) {
+    $instance = array(
+      'label' => 'License',
+      'field_name' => 'commerce_license',
+      'entity_type' => 'commerce_line_item',
+      'bundle' => $new_bundle,
+      'required' => TRUE,
+    );
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Implements hook_commerce_order_update().
+ *
+ * Ensure the license is assigned to the correct user.
+ */
+function commerce_license_commerce_order_update($order) {
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+  if (!empty($order->commerce_line_items)) {
+    foreach ($order_wrapper->commerce_line_items->value() as $line_item) {
+      if (empty($line_item->commerce_license)) {
+        continue;
+      }
+      $license = entity_metadata_wrapper('commerce_line_item', $line_item)->commerce_license->value();
+      if ($license && $license->uid != $order->uid) {
+        $license->uid = $order->uid;
+        entity_save('commerce_license', $license);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_commerce_checkout_complete().
+ *
+ * Update the status of all licenses attached to a completed order.
+ */
+function commerce_license_commerce_checkout_complete($order) {
+  $wrapper = entity_metadata_wrapper('commerce_order', $order);
+  foreach ($wrapper->commerce_line_items as $line_item_wrapper) {
+    if (isset($line_item_wrapper->commerce_license)) {
+      $license = $line_item_wrapper->commerce_license->value();
+      if ($license) {
+        $license->status = COMMERCE_LICENSE_ACTIVE;
+        $license->save();
+      }
+    }
+  }
+}
+
+/**
+ * Allowed values callback for license types.
+ */
+function commerce_license_types_allowed_values() {
+  $types = &drupal_static(__FUNCTION__, array());
+  if (empty($types)) {
+    foreach (commerce_license_get_type_plugins() as $plugin_name => $plugin_info) {
+      $types[$plugin_name] = $plugin_info['title'];
+    }
+  }
+  return $types;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function commerce_license_field_widget_info() {
+  $widgets = array();
+  if (module_exists('inline_entity_form')) {
+    // Provide an IEF widget for editing the license on the add to cart form.
+    $widgets['inline_entity_form_license'] = array(
+      'label' => t('Inline Entity Form - Commerce License'),
+      'field types' => array('entityreference'),
+      'settings' => array(
+        'fields' => array(),
+        'type_settings' => array(),
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_NONE,
+      ),
+    );
+  }
+  $widgets['commerce_license_duration'] = array(
+    'label' => t('License expiration'),
+    'field types' => array('text'),
+  );
+
+  return $widgets;
+}
+
+/**
+ * Implements hook_field_widget_settings_form().
+ */
+function commerce_license_field_widget_settings_form($field, $instance) {
+  if ($instance['widget']['type'] == 'inline_entity_form_license') {
+    return inline_entity_form_field_widget_settings_form($field, $instance);
+  }
+}
+
+/**
+ * Implements hook_field_widget_error().
+ */
+function commerce_license_field_widget_error($element, $error, $form, &$form_state) {
+  form_error($element['value'], $error['message']);
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function commerce_license_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  if ($instance['widget']['type'] == 'inline_entity_form_license') {
+    // Using #title_display = invisible doesn't work here.
+    $element['#title'] = '';
+    if (!empty($form_state['line_item'])) {
+      $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $form_state['line_item']);
+      $product = $line_item_wrapper->commerce_product->value();
+      if (empty($product->commerce_license_type)) {
+        // This product is not licensable.
+        return array();
+      }
+
+      $license_type = $line_item_wrapper->commerce_product->commerce_license_type->value();
+      // Inject the desired bundle.
+      $field['settings']['handler_settings']['target_bundles'] = array($license_type);
+    }
+    // Workaround the IEF condition.
+    $instance['widget']['type'] = 'inline_entity_form_single';
+    $element = inline_entity_form_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
+    // Remove the fieldset around the license form, it's not needed.
+    $element['#type'] = 'container';
+
+    return $element;
+  }
+  elseif ($instance['widget']['type'] == 'commerce_license_duration') {
+    $element += array(
+      '#type' => 'container',
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'commerce_license') . '/theme/commerce-license.css',
+        ),
+      ),
+      '#attributes' => array(
+        'class' => array('commerce-license-duration-wrapper'),
+      ),
+      '#element_validate' => array('commerce_license_duration_validate'),
+    );
+
+    // Move description to the top
+    if (!empty($element['#description'])) {
+      $element['description'] = array(
+        '#markup' => '<div class="description">' . $element['#description'] . '</div>',
+        '#weight' => -10,
+      );
+      unset($element['#description']);
+    }
+
+    $default_mode = 'unlimited';
+    $default_value = 5;
+    $default_unit = 86400;
+    if (!empty($items[0])) {
+      $default_mode = 'limited';
+      list($default_value, $default_unit) = commerce_license_duration_from_timestamp($items[0]['value']);
+    }
+
+    $element['mode'] = array(
+      '#type' => 'radios',
+      '#title' => $element['#title'],
+      '#options' => array(
+        'unlimited' => t('Unlimited'),
+        'limited' => t('Limited'),
+      ),
+      '#default_value' => $default_mode,
+      '#attributes' => array('class' => array('commerce-license-duration-mode')),
+    );
+    $description = t('Note: Months are 30 days long');
+    $element['duration'] = array(
+      '#type' => 'container',
+      'value' => array(
+        '#type' => 'textfield',
+        '#title' => t('Duration'),
+        '#title_display' => 'invisible',
+        '#size' => 5,
+        '#default_value' => $default_value,
+        '#element_validate' => array('element_validate_integer_positive'),
+      ),
+      'unit' => array(
+        '#type' => 'select',
+        '#default_value' => $default_unit,
+        '#options' => commerce_license_duration_units(),
+      ),
+      'description' => array(
+        '#markup' => '<div class="description">' . $description . '</div>',
+      ),
+      '#attributes' => array('class' => array('commerce-license-duration container-inline')),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="' . $element['#field_name'] . '[und][0][mode]"]' => array('value' => 'limited'),
+        ),
+      ),
+    );
+
+    return $element;
+  }
+}
+
+/**
+ * #element_validate callback for the commerce_license_duration widget.
+ */
+function commerce_license_duration_validate($element, &$form_state) {
+  // 0 is interpreted as "unlimited".
+  $value = array('value' => 0);
+
+  if ($element['mode']['#value'] == 'limited') {
+    $duration = $element['duration'];
+    $duration_value = trim($duration['value']['#value']);
+    // Can't use #required on the value element because it shouldn't validate
+    // when the mode is set to 'unlimited'.
+    if (empty($duration_value)) {
+      form_error($element, t('%name field is required.', array('%name' => $element['#title'])));
+      form_set_value($element, $value, $form_state);
+      return;
+    }
+
+    // Convert value into unix timestamp.
+    if (!empty($duration['unit']['#value'])) {
+      $duration_value *= $duration['unit']['#value'];
+    }
+    $value['value'] = intval($duration_value);
+  }
+
+  form_set_value($element, $value, $form_state);
+}
+
+/**
+ * Returns all defined duration units.
+ *
+ * @return
+ *   An array of duration units, keyed by their unix timestamp values.
+ */
+function commerce_license_duration_units() {
+  return array(
+    365*86400 => t('years'),
+    30*86400 => t('months'),
+    7*86400 => t('weeks'),
+    86400 => t('days'),
+    3600 => t('hours'),
+    60 => t('minutes'),
+  );
+}
+
+/**
+ * Converts a unix timestamp to a duration with a unit (1 day, 2 weeks, etc).
+ *
+ * @param $timestamp
+ *   The unix timestamp to convert.
+ *
+ * @return
+ *   An array with the value as the first element, and the unit as the second.
+ */
+function commerce_license_duration_from_timestamp($timestamp) {
+  if (!is_scalar($timestamp)) {
+    return array();
+  }
+
+  // Get the highest unit wholly contained in the value.
+  $unit = 60;
+  $units = commerce_license_duration_units();
+  foreach ($units as $multiplier => $label) {
+    if ($timestamp % $multiplier == 0) {
+      $unit = $multiplier;
+      break;
+    }
+  }
+
+  // Return the value and the unit.
+  return array($timestamp / $unit, $unit);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function commerce_license_theme() {
+  return array(
+    'commerce_license' => array(
+      'render element' => 'elements',
+      'template' => 'theme/commerce_license',
+    ),
+  );
+}

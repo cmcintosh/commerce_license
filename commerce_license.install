@@ -1,0 +1,84 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function commerce_license_schema() {
+  $schema['commerce_license'] = array(
+    'description' => 'The base table for the commerce_license entity type.',
+    'fields' => array(
+      'license_id' => array(
+        'description' => 'The primary identifier for a license.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The license type.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that created this license belongs to.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'product_id' => array(
+        'description' => 'The {commerce_product}.product_id that is licensed.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'status' => array(
+        'description' => 'The license status.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'granted' => array(
+        'description' => 'The Unix timestamp when the license was granted.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'expires' => array(
+        'description' => 'The Unix timestamp when the license expires. 0 for never.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('license_id'),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'foreign keys' => array(
+      'owner' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+      'product' => array(
+        'table' => 'commerce_product',
+        'columns' => array('product_id' => 'product_id'),
+      ),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function commerce_license_uninstall() {
+  // Delete license, product and line item fields and their instances.
+  field_delete_field('commerce_license_type');
+  field_delete_field('commerce_license_expiration');
+  field_delete_field('commerce_license');
+
+  // Delete variable settings.
+  variable_del('commerce_license_product_types');
+  variable_del('commerce_license_line_item_types');
+}
