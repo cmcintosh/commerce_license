@@ -12,10 +12,27 @@ define('COMMERCE_LICENSE_ACTIVE', 2);
 define('COMMERCE_LICENSE_EXPIRED', 3);
 define('COMMERCE_LICENSE_REVOKED', 4);
 
+// License synchronization statuses.
+define('COMMERCE_LICENSE_NEEDS_SYNC', 1);
+define('COMMERCE_LICENSE_SYNCED', 2);
+define('COMMERCE_LICENSE_SYNC_FAILED', 3);
+
+// Refresh rates for the ajax polling.
+define('COMMERCE_LICENSE_CHECK_REFRESH_RATE', 1000);
+define('COMMERCE_LICENSE_CHECK_REFRESH_TIMEOUT', 40000);
+
 /**
  * Implements hook_menu().
  */
 function commerce_license_menu() {
+  $items['ajax/commerce_license/%entity_object'] = array(
+    'load arguments' => array('commerce_license'),
+    'delivery callback' => 'ajax_deliver',
+    'page callback' => 'commerce_license_complete_checkout_ajax_callback',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+    'file' => 'includes/commerce_license.checkout_pane.inc',
+  );
   $items['admin/commerce/config/license'] = array(
     'title' => 'License settings',
     'description' => 'Configure general licensing settings.',
@@ -42,7 +59,7 @@ function commerce_license_commerce_checkout_pane_info() {
     'enabled' => FALSE,
   );
   $checkout_panes['commerce_license_complete'] = array(
-    'title' => t('License checkout complete'),
+    'title' => t('License completion message'),
     'file' => 'includes/commerce_license.checkout_pane.inc',
     'base' => 'commerce_license_complete',
     'page' => 'complete',
@@ -386,11 +403,91 @@ function commerce_license_commerce_payment_order_paid_in_full($order, $transacti
     if (isset($line_item_wrapper->commerce_license)) {
       $license = $line_item_wrapper->commerce_license->value();
       if ($license) {
-        $license->status = COMMERCE_LICENSE_ACTIVE;
-        $license->save();
+        if ($license instanceof CommerceLicenseSynchronizableInterface) {
+          $license->status = COMMERCE_LICENSE_PENDING;
+          $license->save();
+          commerce_license_enqueue_sync($license, $order);
+        }
+        else {
+          $license->status = COMMERCE_LICENSE_ACTIVE;
+          $license->save();
+        }
       }
     }
   }
+}
+
+/**
+ * Enqueues a license for synchronization.
+ *
+ * @param $license
+ *   The license entity.
+ * @param $order
+ *   An optional order entity, if the function is called in an order context.
+ *   Used to set a more precise queue item title.
+ */
+function commerce_license_enqueue_sync($license, $order = NULL) {
+  $license->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+  $license->wrapper->save();
+
+  $queue = DrupalQueue::get('commerce_license_synchronize');
+  // Prepare a friendly title for the queue item.
+  if ($order) {
+    $args = array(
+      '@license_id' => $license->license_id,
+      '@number' => $order->order_number,
+    );
+    $item_title = t('License #@license_id (Order #@number)', $args);
+  }
+  else {
+    $args = array('@license_id' => $license->license_id);
+    $item_title = t('License #@license_id', $args);
+  }
+
+  $task = array(
+    'uid' => $license->uid,
+    'license_id' => $license->license_id,
+    'title' => $item_title,
+  );
+  $queue->createItem($task);
+}
+
+/**
+ * Implements hook_advanced_queue_info().
+ */
+function commerce_license_advanced_queue_info() {
+  return array(
+    'commerce_license_synchronize' => array(
+      'worker callback' => 'commerce_license_synchronize',
+    ),
+  );
+}
+
+/**
+ * Worker callback for synchronizing the license.
+ */
+function commerce_license_synchronize($item) {
+  $license = entity_load_single('commerce_license', $item->data['license_id']);
+  $synchronize = $license->synchronize();
+  if (!$synchronize) {
+    $license->wrapper->sync_status = COMMERCE_LICENSE_SYNC_FAILED;
+    $license->wrapper->save();
+    return array(
+      'status' => ADVANCEDQUEUE_STATUS_FAILURE,
+      'result' => 'Synchronization failed for ' . $item->item_id,
+    );
+  }
+
+  $license->wrapper->sync_status = COMMERCE_LICENSE_SYNCED;
+  $license->wrapper->save();
+  // Fire a rules event and a hook, allowing developers to respond
+  // to a license synchronization (sending a notification mail, for instance).
+  rules_invoke_all('commerce_license_synchronize', $license);
+
+  return array(
+    'status' => ADVANCEDQUEUE_STATUS_SUCCESS,
+    'result' => 'Processed ' . $item->item_id,
+  );
 }
 
 /**
