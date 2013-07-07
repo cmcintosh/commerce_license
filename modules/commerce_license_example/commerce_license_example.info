@@ -3,3 +3,7 @@ description = Provides an example license type for testing and development.
 core = 7.x
 package = Commerce (contrib)
 dependencies[] = commerce_license
+; Configurable licenses need inline entity form.
+dependencies[] = inline_entity_form
+; Remote licenses need the advanced queue.
+dependencies[] = advancedqueue
