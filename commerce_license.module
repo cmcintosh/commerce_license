@@ -181,6 +181,55 @@ function commerce_license_access($op, $license = NULL, $account = NULL) {
 }
 
 /**
+ * Returns all licenses found on an order.
+ *
+ * @param $order
+ *   The order entity.
+ * @param $configurable
+ *   Whether to only take configurable licenses.
+ *
+ * @return
+ *   An array of all found licenses, keyed by license id.
+ */
+function commerce_license_get_order_licenses($order, $configurable = FALSE) {
+  $licenses = array();
+  $wrapper = entity_metadata_wrapper('commerce_order', $order);
+  foreach ($wrapper->commerce_line_items as $line_item_wrapper) {
+    if (isset($line_item_wrapper->commerce_license)) {
+      $license = $line_item_wrapper->commerce_license->value();
+      if ($license && (!$configurable || $license->isConfigurable())) {
+        $licenses[$license->license_id] = $license;
+      }
+    }
+  }
+
+  return $licenses;
+}
+
+/**
+ * Implements hook_commerce_line_item_presave().
+ *
+ * Ensures that each saved line item has a matching license, if needed.
+ */
+function commerce_license_commerce_line_item_presave($line_item) {
+  $line_item_types = variable_get('commerce_license_line_item_types', array());
+  $line_item_types = array_filter($line_item_types);
+  // This is a license line item type, and it has no license.
+  if (in_array($line_item->type, $line_item_types) && empty($line_item->commerce_license)) {
+    $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+    $product = $line_item_wrapper->commerce_product->value();
+    // This product is licensable.
+    if (!empty($product->commerce_license_type)) {
+      $type = $line_item_wrapper->commerce_product->commerce_license_type->value();
+      $license = entity_create('commerce_license', array('type' => $type));
+      $license->product_id = $line_item_wrapper->commerce_product->product_id->value();
+      $license->save();
+      $line_item_wrapper->commerce_license = $license;
+    }
+  }
+}
+
+/**
  * Implements hook_commerce_line_item_delete().
  *
  * Delete the associated license when removing a line item.
@@ -377,17 +426,11 @@ function commerce_license_configure_line_item_types($types) {
  * Ensure the license is assigned to the correct user.
  */
 function commerce_license_commerce_order_update($order) {
-  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-  if (!empty($order->commerce_line_items)) {
-    foreach ($order_wrapper->commerce_line_items->value() as $line_item) {
-      if (empty($line_item->commerce_license)) {
-        continue;
-      }
-      $license = entity_metadata_wrapper('commerce_line_item', $line_item)->commerce_license->value();
-      if ($license && $license->uid != $order->uid) {
-        $license->uid = $order->uid;
-        entity_save('commerce_license', $license);
-      }
+  $licenses = commerce_license_get_order_licenses($order);
+  foreach ($licenses as $license) {
+    if ($license->uid != $order->uid) {
+      $license->uid = $order->uid;
+      entity_save('commerce_license', $license);
     }
   }
 }
@@ -398,21 +441,16 @@ function commerce_license_commerce_order_update($order) {
  * Update the status of all licenses attached to a paid order.
  */
 function commerce_license_commerce_payment_order_paid_in_full($order, $transaction) {
-  $wrapper = entity_metadata_wrapper('commerce_order', $order);
-  foreach ($wrapper->commerce_line_items as $line_item_wrapper) {
-    if (isset($line_item_wrapper->commerce_license)) {
-      $license = $line_item_wrapper->commerce_license->value();
-      if ($license) {
-        if ($license instanceof CommerceLicenseSynchronizableInterface) {
-          $license->status = COMMERCE_LICENSE_PENDING;
-          $license->save();
-          commerce_license_enqueue_sync($license, $order);
-        }
-        else {
-          $license->status = COMMERCE_LICENSE_ACTIVE;
-          $license->save();
-        }
-      }
+  $licenses = commerce_license_get_order_licenses($order);
+  foreach ($licenses as $license) {
+    if ($license instanceof CommerceLicenseSynchronizableInterface) {
+      $license->status = COMMERCE_LICENSE_PENDING;
+      $license->save();
+      commerce_license_enqueue_sync($license, $order);
+    }
+    else {
+      $license->status = COMMERCE_LICENSE_ACTIVE;
+      $license->save();
     }
   }
 }
