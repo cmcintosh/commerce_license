@@ -68,11 +68,11 @@ class CommerceLicenseExample extends CommerceLicenseBase  {
   }
 
   /**
-   * Implements CommerceLicenseInterface::successText().
+   * Implements CommerceLicenseInterface::checkoutCompletionMessage().
    */
-  public function successText() {
-    // A real successText() method would also output the result of
-    // $this->accessDetails() here.
+  public function checkoutCompletionMessage() {
+    // A real checkoutCompletionMessage() method would also output the result
+    // of $this->accessDetails() here.
     $text = 'Congratulations, ' . $this->wrapper->cle_name->value() . '. <br />';
     $text .= "You are now licensed.";
     return $text;

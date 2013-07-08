@@ -92,12 +92,12 @@ interface CommerceLicenseInterface extends EntityBundlePluginProvideFieldsInterf
   /**
    * Returns the html message to be shown to the customer on checkout complete.
    *
-   * Called by the commerce_license_checkout_complete checkout pane.
+   * Called by the commerce_license_complete checkout pane.
    *
    * @return
    *   The html message to be shown to the customer.
    */
-  public function successText();
+  public function checkoutCompletionMessage();
 
 }
 
@@ -193,9 +193,9 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
   }
 
   /**
-   * Implements CommerceLicenseInterface::successText().
+   * Implements CommerceLicenseInterface::checkoutCompletionMessage().
    */
-  public function successText() {}
+  public function checkoutCompletionMessage() {}
 
   /**
    * Overrides Entity::save().
@@ -296,9 +296,9 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
   }
 
   /**
-   * Overrides CommerceLicenseBase::successText().
+   * Overrides CommerceLicenseBase::checkoutCompletionMessage().
    */
-  public function successText() {
+  public function checkoutCompletionMessage() {
     $message = '';
     $sync_status = $this->wrapper->sync_status->value();
     switch ($sync_status) {
@@ -372,9 +372,9 @@ class CommerceLicenseBroken extends Entity implements CommerceLicenseInterface, 
   public function formSubmit(&$form, $form_state) {}
 
   /**
-   * Implements CommerceLicenseInterface::successText().
+   * Implements CommerceLicenseInterface::checkoutCompletionMessage().
    */
-  public function successText() {}
+  public function checkoutCompletionMessage() {}
 
   /**
    * Implements EntityBundlePluginValidableInterface::isValid().
