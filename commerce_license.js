@@ -4,7 +4,6 @@
       $('.commerce-license-checkout').once('ajax-processed').each(function() {
         if (typeof $(this).data('refresh-url') != 'undefined') {
           var base = $(this).attr('id');
-          console.log($(this).data('refresh-url'));
           var element_settings = {
             'url': $(this).data('refresh-url'),
             'type': 'throbber',
