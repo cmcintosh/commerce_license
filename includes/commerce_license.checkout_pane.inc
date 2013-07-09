@@ -76,19 +76,19 @@ function commerce_license_complete_checkout_form($form, &$form_state, $checkout_
   // Show a pane for each found license.
   $licenses = commerce_license_get_order_licenses($order);
   foreach ($licenses as $license) {
+    $synchronizable = ($license instanceof CommerceLicenseSynchronizableInterface);
     // If this is a synchronizable license, attach the JS for the refresh.
-    $refresh_rate = NULL;
-    if (!$js_attached && $license instanceof CommerceLicenseSynchronizableInterface) {
+    if (!$js_attached && $synchronizable) {
       $pane_form['#attached']['library'][] = array('system', 'drupal.ajax');
       $pane_form['#attached']['js'] = array(
         drupal_get_path('module', 'commerce_license') . '/commerce_license.js',
       );
       $js_attached = TRUE;
-      $refresh_rate = COMMERCE_LICENSE_CHECK_REFRESH_RATE;
     }
     // Get the message to show.
     $message = t('Your license will be activated once your payment has been processed.');
     if ($order_paid) {
+      $refresh_rate = $synchronizable ? COMMERCE_LICENSE_CHECK_REFRESH_RATE : NULL;
       $message = commerce_license_checkout_competion_message($license, $refresh_rate);
     }
 

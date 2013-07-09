@@ -55,7 +55,7 @@ class CommerceLicenseRemoteExample extends CommerceLicenseRemoteBase  {
     // Simulate a 2s delay in synchronization, as if the service call was done.
     sleep(2);
     // Imagine that the service call returned an api key. Set it.
-    $this->wrapper->cle_api_key = sha1(REQUEST_TIME);
+    $this->wrapper->cle_api_key = sha1($this->license_id);
 
     return TRUE;
   }
