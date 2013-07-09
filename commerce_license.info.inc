@@ -11,6 +11,7 @@ class CommerceLicenseMetadataController extends EntityDefaultMetadataController 
     $info = parent::entityPropertyInfo();
     $properties = &$info[$this->type]['properties'];
 
+    $properties['status']['options list'] = 'commerce_license_status_options_list';
     $properties['granted']['type'] = 'date';
     $properties['expires']['type'] = 'date';
 

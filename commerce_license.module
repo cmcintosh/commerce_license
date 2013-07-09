@@ -776,3 +776,17 @@ function commerce_license_theme() {
     ),
   );
 }
+
+/**
+ * Returns a list of all possible license statuses.
+ */
+function commerce_license_status_options_list() {
+  return array(
+    COMMERCE_LICENSE_CREATED => t('Created'),
+    COMMERCE_LICENSE_PENDING => t('Pending'),
+    COMMERCE_LICENSE_ACTIVE => t('Active'),
+    COMMERCE_LICENSE_EXPIRED => t('Expired'),
+    COMMERCE_LICENSE_REVOKED => t('Revoked'),
+  );
+}
+
