@@ -164,7 +164,7 @@ function commerce_license_checkout_competion_message($license, $refresh_delay = 
       ),
     ),
     'output' => array(
-      '#markup' => $license->successText(),
+      '#markup' => $license->checkoutCompletionMessage(),
     ),
   );
   // Add data attributes for the refresh process.
