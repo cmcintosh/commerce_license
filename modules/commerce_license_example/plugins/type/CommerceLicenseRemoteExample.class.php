@@ -52,10 +52,19 @@ class CommerceLicenseRemoteExample extends CommerceLicenseRemoteBase  {
    * Implements CommerceLicenseSynchronizableInterface::synchronize().
    */
   public function synchronize() {
-    // Simulate a 2s delay in synchronization, as if the service call was done.
-    sleep(2);
-    // Imagine that the service call returned an api key. Set it.
-    $this->wrapper->cle_api_key = sha1($this->license_id);
+    // The license is being activated.
+    if ($this->status == COMMERCE_LICENSE_PENDING) {
+      // Simulate a 2s delay in synchronization, as if the service call was done.
+      sleep(2);
+      // Imagine that the service call returned an api key. Set it.
+      $this->wrapper->cle_api_key = sha1($this->license_id);
+    }
+    elseif ($this->status == COMMERCE_LICENSE_EXPIRED) {
+      // The license was just expired. Do something.
+    }
+    elseif ($this->status == COMMERCE_LICENSE_REVOKED) {
+      // The license was just revoked. Do something.
+    }
 
     return TRUE;
   }

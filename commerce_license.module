@@ -342,7 +342,7 @@ function commerce_license_enqueue_sync($license, $order = NULL) {
   $license->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
   $license->wrapper->save();
 
-  $queue = DrupalQueue::get('commerce_license_synchronize');
+  $queue = DrupalQueue::get('commerce_license_synchronization');
   // Prepare a friendly title for the queue item.
   if ($order) {
     $args = array(
@@ -365,20 +365,87 @@ function commerce_license_enqueue_sync($license, $order = NULL) {
 }
 
 /**
+ * Implements hook_cron().
+ *
+ * Enqueues licenses for expiration.
+ * The queue worker will load them one by one, change their status (allowing
+ * other modules to respond via Rules and hooks), and if synchronizable,
+ * enqueue them for synchronization.
+ */
+function commerce_license_cron() {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'commerce_license')
+    ->propertyCondition('status', COMMERCE_LICENSE_ACTIVE)
+    ->propertyCondition('expires', REQUEST_TIME, '<=');
+  $results = $query->execute();
+  if (!empty($results['commerce_license'])) {
+    foreach (array_keys($results['commerce_license']) as $license_id) {
+      $queue = DrupalQueue::get('commerce_license_expiration');
+      $task = array(
+        'license_id' => $license_id,
+        'title' => t('License #@license_id', array('@license_id' => $license_id)),
+      );
+      $queue->createItem($task);
+    }
+  }
+}
+
+/**
  * Implements hook_advanced_queue_info().
  */
 function commerce_license_advanced_queue_info() {
   return array(
-    'commerce_license_synchronize' => array(
-      'worker callback' => 'commerce_license_synchronize',
+    'commerce_license_expiration' => array(
+      'worker callback' => 'commerce_license_expiration_queue_process'
+    ),
+    'commerce_license_synchronization' => array(
+      'worker callback' => 'commerce_license_synchronization_queue_process',
     ),
   );
 }
 
 /**
- * Worker callback for synchronizing the license.
+ * Implements hook_cron_queue_info().
+ *
+ * Provides an expiration queue processed on cron, as a fallback if the
+ * advancedqueue module is missing.
  */
-function commerce_license_synchronize($item) {
+function commerce_license_cron_queue_info() {
+  if (!module_exists('advancedqueue')) {
+    return array(
+      'commerce_license_expiration' => array(
+        'worker callback' => 'commerce_license_expiration_queue_process',
+        'time' => 60,
+      ),
+    );
+  }
+}
+
+/**
+ * Worker callback for expiring licenses.
+ */
+function commerce_license_expiration_queue_process($item) {
+  $license = entity_load_single('commerce_license', $item->data['license_id']);
+  $license->status = COMMERCE_LICENSE_EXPIRED;
+  $license->save();
+  // If the license is synchronizable, queue it for synchronization.
+  if ($license instanceof CommerceLicenseSynchronizableInterface) {
+    commerce_license_enqueue_sync($license);
+  }
+
+  if (module_exists('advancedqueue')) {
+    // If advancedqueue is used, return the proper status.
+    return array(
+      'status' => ADVANCEDQUEUE_STATUS_SUCCESS,
+      'result' => 'Processed license #' . $license->license_id,
+    );
+  }
+}
+
+/**
+ * Worker callback for synchronizing licenses.
+ */
+function commerce_license_synchronization_queue_process($item) {
   $license = entity_load_single('commerce_license', $item->data['license_id']);
   $synchronize = $license->synchronize();
   if (!$synchronize) {
@@ -386,10 +453,14 @@ function commerce_license_synchronize($item) {
     $license->wrapper->save();
     return array(
       'status' => ADVANCEDQUEUE_STATUS_FAILURE,
-      'result' => 'Synchronization failed for ' . $item->item_id,
+      'result' => 'Synchronization failed for license #' . $license->license_id,
     );
   }
 
+  // A pending license was just activated, update its status.
+  if ($license->status == COMMERCE_LICENSE_PENDING) {
+    $license->wrapper->status = COMMERCE_LICENSE_ACTIVE;
+  }
   $license->wrapper->sync_status = COMMERCE_LICENSE_SYNCED;
   $license->wrapper->save();
   // Fire a rules event and a hook, allowing developers to respond
@@ -398,7 +469,7 @@ function commerce_license_synchronize($item) {
 
   return array(
     'status' => ADVANCEDQUEUE_STATUS_SUCCESS,
-    'result' => 'Processed ' . $item->item_id,
+    'result' => 'Processed license #' . $license->license_id,
   );
 }
 
