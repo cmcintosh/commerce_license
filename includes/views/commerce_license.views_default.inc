@@ -339,7 +339,7 @@ function commerce_license_views_default_views() {
   $handler->display->display_options['filters']['name']['id'] = 'name';
   $handler->display->display_options['filters']['name']['table'] = 'advancedqueue';
   $handler->display->display_options['filters']['name']['field'] = 'name';
-  $handler->display->display_options['filters']['name']['value'] = 'commerce_license_synchronize';
+  $handler->display->display_options['filters']['name']['value'] = 'commerce_license_synchronization';
   /* Filter criterion: Queue: Item status */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'advancedqueue';
