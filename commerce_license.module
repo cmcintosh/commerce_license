@@ -495,14 +495,14 @@ function commerce_license_synchronization_queue_process($item) {
 }
 
 /**
- * Ensures that the provided line item types have the required license fields.
+ * Ensures that the provided product types have the required license fields.
  *
  * Fields:
  * - commerce_license_type: a list(text) field pointing to a license type.
  * - commerce_license_duration: a text field storing strtotime values.
  *
  * @param $types
- *   An array of line item type machine names.
+ *   An array of product type machine names.
  */
 function commerce_license_configure_product_types($types) {
   // The list of types is empty, no need to create anything.
@@ -619,6 +619,13 @@ function commerce_license_configure_line_item_types($types) {
       'bundle' => $new_bundle,
       'required' => TRUE,
     );
+    // Configure IEF, if available.
+    if (module_exists('inline_entity_form')) {
+      $instance['widget'] = array(
+        'type' => 'inline_entity_form_license',
+      );
+    }
+
     field_create_instance($instance);
   }
 }
