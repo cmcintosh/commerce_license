@@ -16,3 +16,4 @@ files[] = includes/commerce_license.inline_entity_form.inc
 files[] = includes/plugins/type/base.inc
 files[] = includes/views/commerce_license.views_controller.inc
 files[] = includes/views/handlers/commerce_license_handler_field_access_details.inc
+files[] = includes/views/plugins/commerce_license_plugin_access_sync.inc

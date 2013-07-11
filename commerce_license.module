@@ -205,6 +205,16 @@ function commerce_license_access($op, $license = NULL, $account = NULL) {
 }
 
 /**
+ * Access callback for the commerce_license_plugin_access_sync access plugin.
+ *
+ * Determines if the advancedqueue module is enabled, and the user has access
+ * to administer the licenses.
+ */
+function commerce_license_sync_access($account = NULL) {
+  return module_exists('advancedqueue') && user_access('administer licenses', $account);
+}
+
+/**
  * Implements hook_commerce_checkout_pane_info().
  */
 function commerce_license_commerce_checkout_pane_info() {

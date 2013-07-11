@@ -18,6 +18,7 @@ class CommerceLicenseViewsController extends EntityDefaultViewsController {
       'field' => array(
         'handler' => 'commerce_license_handler_field_access_details',
         'click sortable' => FALSE,
+        'type' => 'commerce_license',
         'real field' => 'entity object',
       ),
     );

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains the commerce_license_handler_field_access_details class.
+ * Contains commerce_license_handler_field_access_details.
  */
 
 /**
