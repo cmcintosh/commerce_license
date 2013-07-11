@@ -75,9 +75,14 @@ class CommerceLicenseInlineEntityFormController extends EntityInlineEntityFormCo
    * Overrides EntityInlineEntityFormController::entityFormSubmit().
    */
   public function entityFormSubmit(&$entity_form, &$form_state) {
-    $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $form_state['line_item']);
     $license = $entity_form['#entity'];
-    $license->product_id = $line_item_wrapper->commerce_product->raw();
+    // If IEF is being shown on an order form, use it to get the uid.
+    if (!empty($form_state['commerce_order'])) {
+      $license->uid = $form_state['commerce_order']->uid;
+    }
+    // $license->product_id is maintained by
+    // commerce_license_commerce_line_item_presave().
+
     // Only submit the form if the license is configurable.
     if ($license->isConfigurable()) {
       $license->formSubmit($entity_form, $form_state);
