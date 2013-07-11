@@ -114,7 +114,7 @@ function commerce_license_entity_info() {
         ),
       ),
       'metadata controller class' => 'CommerceLicenseMetadataController',
-      'views controller class' => 'EntityDefaultViewsController',
+      'views controller class' => 'CommerceLicenseViewsController',
       'access callback' => 'commerce_license_access',
       'access arguments' => array(
         'user key' => 'uid',
@@ -141,6 +141,16 @@ function commerce_license_theme() {
       'render element' => 'elements',
       'template' => 'theme/commerce_license',
     ),
+  );
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function commerce_license_views_api() {
+  return array(
+    'version' => 3,
+    'path' => drupal_get_path('module', 'commerce_license') . '/includes/views',
   );
 }
 
@@ -613,6 +623,20 @@ function commerce_license_status_options_list() {
     COMMERCE_LICENSE_EXPIRED => t('Expired'),
     COMMERCE_LICENSE_REVOKED => t('Revoked'),
   );
+}
+
+/**
+ * Returns the access details of an activated license, or "N/A" if the license
+ * hasn't been activated yet.
+ */
+function commerce_license_get_access_details($license) {
+  if ($license->status > COMMERCE_LICENSE_PENDING) {
+    return $license->accessDetails();
+  }
+  else {
+    // This license hasn't been activated yet.
+    return t('N/A');
+  }
 }
 
 /**

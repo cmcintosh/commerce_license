@@ -16,6 +16,7 @@ class CommerceLicenseMetadataController extends EntityDefaultMetadataController 
     $properties['granted']['type'] = 'date';
     $properties['expires']['type'] = 'date';
 
+    // This ensures functioning Views relationships.
     unset($properties['uid']);
     $properties['owner'] = array(
       'type' => 'user',
@@ -33,6 +34,13 @@ class CommerceLicenseMetadataController extends EntityDefaultMetadataController 
       'setter callback' => 'entity_property_verbatim_set',
       'required' => TRUE,
       'schema field' => 'product_id',
+    );
+
+    // entity_token uses this to provide [commerce_license:access-details].
+    $properties['access_details'] = array(
+      'label' => t("Access details"),
+      'description' => t("The access details of an activated license."),
+      'getter callback' => 'commerce_license_get_access_details',
     );
 
     return $info;
