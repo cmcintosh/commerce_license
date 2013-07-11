@@ -18,11 +18,18 @@ function commerce_license_settings_form($form, &$form_state) {
     '#default_value' => variable_get('commerce_license_product_types', array()),
     '#options' => commerce_product_type_options_list(),
   );
+  $line_item_types = array();
+  foreach (commerce_line_item_types() as $type => $line_item_type) {
+    // Only allow product line item types to be selected.
+    if (!empty($line_item_type['product'])) {
+      $line_item_types[$type] = $line_item_type['name'];
+    }
+  }
   $form['commerce_license_line_item_types'] = array(
     '#title' => t('Line item types'),
     '#type' => 'checkboxes',
     '#default_value' => variable_get('commerce_license_line_item_types', array()),
-    '#options' => commerce_line_item_type_get_name(),
+    '#options' => $line_item_types,
   );
 
   $form = system_settings_form($form);

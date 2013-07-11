@@ -3,6 +3,7 @@ description = Provides a framework for selling access to local or remote resourc
 core = 7.x
 package = Commerce (contrib)
 dependencies[] = commerce_product
+dependencies[] = commerce_product_reference
 dependencies[] = commerce_line_item
 dependencies[] = commerce_payment
 dependencies[] = ctools
