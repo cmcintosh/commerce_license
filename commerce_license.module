@@ -35,11 +35,16 @@ function commerce_license_menu() {
   );
   $items['admin/commerce/config/license'] = array(
     'title' => 'License settings',
-    'description' => 'Configure general licensing settings.',
+    'description' => 'Configure licensing settings.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('commerce_license_settings_form'),
-    'access arguments' => array('administer store'),
+    'access arguments' => array('administer licenses'),
     'file' => 'includes/commerce_license.admin.inc',
+  );
+  $items['admin/commerce/config/license/general'] = array(
+    'title' => 'General',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -20,
   );
 
   return $items;
@@ -521,11 +526,6 @@ function commerce_license_synchronization_queue_process($item) {
  *   An array of product type machine names.
  */
 function commerce_license_configure_product_types($types) {
-  // The list of types is empty, no need to create anything.
-  if (empty($types)) {
-    return;
-  }
-
   $field = field_info_field('commerce_license_type');
   if (!$field) {
     $field = array(
@@ -539,14 +539,12 @@ function commerce_license_configure_product_types($types) {
     field_create_field($field);
   }
 
-  // Compare the list of bundles this field is present on, with the needed
-  // list of bundles, and create any missing instances.
   $existing = array();
   if (!empty($field['bundles']['commerce_product'])) {
     $existing = $field['bundles']['commerce_product'];
   }
-  $diff = array_diff($types, $existing);
-  foreach ($diff as $new_bundle) {
+  // Create instances on newly configured product types.
+  foreach (array_diff($types, $existing) as $new_bundle) {
     $instance = array(
       'field_name' => 'commerce_license_type',
       'entity_type' => 'commerce_product',
@@ -559,6 +557,11 @@ function commerce_license_configure_product_types($types) {
     );
     field_create_instance($instance);
   }
+  // Remove instances from product types that can no longer have licenses.
+  foreach (array_diff($existing, $types) as $removed_bundle) {
+    $instance = field_info_instance('commerce_product', 'commerce_license_type', $removed_bundle);
+    field_delete_instance($instance, TRUE);
+  }
 
   $field = field_info_field('commerce_license_duration');
   if (!$field) {
@@ -570,14 +573,12 @@ function commerce_license_configure_product_types($types) {
     field_create_field($field);
   }
 
-  // Compare the list of bundles this field is present on, with the needed
-  // list of bundles, and create any missing instances.
   $existing = array();
   if (!empty($field['bundles']['commerce_product'])) {
     $existing = $field['bundles']['commerce_product'];
   }
-  $diff = array_diff($types, $existing);
-  foreach ($diff as $new_bundle) {
+  // Create instances on newly configured product types.
+  foreach (array_diff($types, $existing) as $new_bundle) {
     $instance = array(
       'field_name' => 'commerce_license_duration',
       'entity_type' => 'commerce_product',
@@ -589,6 +590,11 @@ function commerce_license_configure_product_types($types) {
       ),
     );
     field_create_instance($instance);
+  }
+  // Remove instances from product types that can no longer have licenses.
+  foreach (array_diff($existing, $types) as $removed_bundle) {
+    $instance = field_info_instance('commerce_product', 'commerce_license_duration', $removed_bundle);
+    field_delete_instance($instance, TRUE);
   }
 }
 
@@ -602,11 +608,6 @@ function commerce_license_configure_product_types($types) {
  *   An array of line item type machine names.
  */
 function commerce_license_configure_line_item_types($types) {
-  // The list of types is empty, no need to create anything.
-  if (empty($types)) {
-    return;
-  }
-
   $field = field_info_field('commerce_license');
   if (!$field) {
     $field = array(
@@ -620,14 +621,12 @@ function commerce_license_configure_line_item_types($types) {
     field_create_field($field);
   }
 
-  // Compare the list of bundles this field is present on, with the needed
-  // list of bundles, and create any missing instances.
   $existing = array();
   if (!empty($field['bundles']['commerce_line_item'])) {
     $existing = $field['bundles']['commerce_line_item'];
   }
-  $diff = array_diff($types, $existing);
-  foreach ($diff as $new_bundle) {
+  // Create instances on newly configured line item types.
+  foreach (array_diff($types, $existing) as $new_bundle) {
     $instance = array(
       'label' => 'License',
       'field_name' => 'commerce_license',
@@ -643,6 +642,11 @@ function commerce_license_configure_line_item_types($types) {
     }
 
     field_create_instance($instance);
+  }
+  // Remove instances from line item types that can no longer have licenses.
+  foreach (array_diff($existing, $types) as $removed_bundle) {
+    $instance = field_info_instance('commerce_line_item', 'commerce_license', $removed_bundle);
+    field_delete_instance($instance, TRUE);
   }
 }
 

@@ -1,7 +1,8 @@
 name = Commerce License
 description = Provides a framework for selling access to local or remote resources.
-core = 7.x
 package = Commerce (contrib)
+core = 7.x
+configure = admin/commerce/config/license
 dependencies[] = commerce_product
 dependencies[] = commerce_product_reference
 dependencies[] = commerce_line_item
