@@ -73,10 +73,16 @@ function commerce_license_get_type_plugins() {
   ctools_include('plugins');
   $plugins = ctools_get_plugins('commerce_license', 'type');
   foreach ($plugins as $key => $plugin) {
-    // Remove any invalid plugins.
+    if (!class_exists($plugin['class'])) {
+      // Invalid class specified.
+      unset($plugins[$key]);
+      continue;
+    }
     $r = new ReflectionClass($plugin['class']);
     if (!$r->hasMethod('isValid') || !call_user_func(array($plugin['class'], 'isValid'))) {
+      // Invalid plugin specified.
       unset($plugins[$key]);
+      continue;
     }
   }
   uasort($plugins, 'ctools_plugin_sort');
