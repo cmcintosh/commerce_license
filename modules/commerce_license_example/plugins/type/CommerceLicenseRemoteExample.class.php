@@ -34,7 +34,7 @@ class CommerceLicenseRemoteExample extends CommerceLicenseRemoteBase  {
   }
 
   /**
-   * Implements CommerceLicenseInterface::resourceDetails().
+   * Implements CommerceLicenseInterface::accessDetails().
    */
   public function accessDetails() {
     $output = field_view_field('commerce_license', $this, 'cle_api_key');

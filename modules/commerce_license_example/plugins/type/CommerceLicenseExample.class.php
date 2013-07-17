@@ -38,7 +38,7 @@ class CommerceLicenseExample extends CommerceLicenseBase  {
   }
 
   /**
-   * Implements CommerceLicenseInterface::resourceDetails().
+   * Implements CommerceLicenseInterface::accessDetails().
    */
   public function accessDetails() {
     // Just display the name field.
