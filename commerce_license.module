@@ -676,12 +676,15 @@ function commerce_license_get_access_details($license) {
 /**
  * Allowed values callback for license types.
  */
-function commerce_license_types_allowed_values() {
+function commerce_license_types_allowed_values($field, $instance, $entity_type, $entity) {
   $types = &drupal_static(__FUNCTION__, array());
   if (empty($types)) {
     foreach (commerce_license_get_type_plugins() as $plugin_name => $plugin_info) {
       $types[$plugin_name] = $plugin_info['title'];
     }
+
+    // Allow the list to be altered.
+    drupal_alter('commerce_license_types_list', $types, $entity);
   }
   return $types;
 }
