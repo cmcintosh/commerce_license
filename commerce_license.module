@@ -266,6 +266,41 @@ function commerce_license_flush_caches() {
 }
 
 /**
+ * Checks whether the user has an active license for the given product.
+ *
+ * @param $product
+ *   The product entity.
+ * @param $account
+ *   The account to check for. If not given, the current user is used instead.
+ *
+ * @return
+ *   TRUE if an active license exists, FALSE otherwise.
+ */
+function commerce_license_exists($product, $account = NULL) {
+  global $user;
+
+  if (!$account) {
+    $account = $user;
+  }
+
+  $results = &drupal_static(__FUNCTION__, array());
+  $uid = $account->uid;
+  $product_id = $product->product_id;
+  if (empty($results[$uid]) || empty($results[$uid][$product_id])) {
+    $query = new EntityFieldQuery;
+    $query
+      ->entityCondition('entity_type', 'commerce_license')
+      ->propertyCondition('status', COMMERCE_LICENSE_ACTIVE)
+      ->propertyCondition('product_id', $product_id)
+      ->propertyCondition('uid', $uid)
+      ->count();
+    $results[$uid][$product_id] = $query->execute();
+  }
+
+  return $results[$uid][$product_id];
+}
+
+/**
  * Implements hook_commerce_line_item_presave().
  *
  * Ensures that each saved line item has a matching license with the
