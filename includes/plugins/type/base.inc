@@ -201,22 +201,30 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
    * Overrides Entity::save().
    */
   public function save() {
+    $granted = FALSE;
     if (!empty($this->license_id) && !isset($this->original)) {
       $this->original = entity_load_unchanged('commerce_license', $this->license_id);
-      $status_changed = ($this->status > $this->original->status);
-      $current_status_active = ($this->status == COMMERCE_LICENSE_ACTIVE);
-      if ($status_changed && $current_status_active) {
-        // The license was just activated, set the granted timestamp.
-        $this->granted = REQUEST_TIME;
-        // Calculate the expiration timestamp.
-        $duration = $this->wrapper->product->commerce_license_duration->value();
-        if ($duration == 0) {
-          // Duration is set to 'unlimited'.
-          $this->expires = 0;
-        }
-        else {
-          $this->expires = REQUEST_TIME + $duration;
-        }
+      if ($this->status > $this->original->status && $this->status == COMMERCE_LICENSE_ACTIVE) {
+        // The license was updated, and its status was changed to active.
+        $granted = TRUE;
+      }
+    }
+    elseif (empty($this->license_id) && $this->status == COMMERCE_LICENSE_ACTIVE) {
+      // The license was created with an active status.
+      $granted = TRUE;
+    }
+
+    if ($granted) {
+      // The license was just activated, set the granted timestamp.
+      $this->granted = REQUEST_TIME;
+      // Calculate the expiration timestamp.
+      $duration = $this->wrapper->product->commerce_license_duration->value();
+      if ($duration == 0) {
+        // Duration is set to 'unlimited'.
+        $this->expires = 0;
+      }
+      else {
+        $this->expires = REQUEST_TIME + $duration;
       }
     }
 

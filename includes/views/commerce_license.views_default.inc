@@ -110,11 +110,10 @@ function commerce_license_views_default_views() {
   $handler->display->display_options['relationships']['product']['id'] = 'product';
   $handler->display->display_options['relationships']['product']['table'] = 'commerce_license';
   $handler->display->display_options['relationships']['product']['field'] = 'product';
-  /* Field: Commerce License: Commerce license ID */
+  /* Field: Commerce License: License ID */
   $handler->display->display_options['fields']['license_id']['id'] = 'license_id';
   $handler->display->display_options['fields']['license_id']['table'] = 'commerce_license';
   $handler->display->display_options['fields']['license_id']['field'] = 'license_id';
-  $handler->display->display_options['fields']['license_id']['label'] = 'License ID';
   /* Field: User: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'users';
@@ -230,7 +229,7 @@ function commerce_license_views_default_views() {
   $handler->display->display_options['tab_options']['description'] = 'Manage licenses in the store.';
   $handler->display->display_options['tab_options']['weight'] = '0';
   $handler->display->display_options['tab_options']['name'] = 'management';
-  $translatables['licenses'] = array(
+  $translatables['commerce_licenses'] = array(
     t('Master'),
     t('Licenses'),
     t('more'),
