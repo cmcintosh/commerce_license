@@ -256,13 +256,27 @@ function commerce_license_commerce_checkout_pane_info() {
  * Ensures that products and line items have the required license fields.
  */
 function commerce_license_flush_caches() {
-  $product_types = variable_get('commerce_license_product_types', array());
-  $product_types = array_filter($product_types);
+  $product_types = commerce_license_product_types();
   commerce_license_configure_product_types($product_types);
 
-  $line_item_types = variable_get('commerce_license_line_item_types', array());
-  $line_item_types = array_filter($line_item_types);
+  $line_item_types = commerce_license_line_item_types();
   commerce_license_configure_line_item_types($line_item_types);
+}
+
+/**
+ * Returns an array of license product types.
+ */
+function commerce_license_product_types() {
+  $product_types = variable_get('commerce_license_product_types', array());
+  return array_filter($product_types);
+}
+
+/**
+ * Returns an array of license line item types.
+ */
+function commerce_license_line_item_types() {
+  $line_item_types = variable_get('commerce_license_line_item_types', array());
+  return array_filter($line_item_types);
 }
 
 /**
@@ -307,10 +321,8 @@ function commerce_license_exists($product, $account = NULL) {
  * correct product id.
  */
 function commerce_license_commerce_line_item_presave($line_item) {
-  $line_item_types = variable_get('commerce_license_line_item_types', array());
-  $line_item_types = array_filter($line_item_types);
   // This is not a license line item type, stop here.
-  if (!in_array($line_item->type, $line_item_types)) {
+  if (!in_array($line_item->type, commerce_license_line_item_types())) {
     return;
   }
 
@@ -556,8 +568,7 @@ function commerce_license_synchronization_queue_process($item) {
  * Prevents the changing of the license line item quantity on the cart form.
  */
 function commerce_license_form_views_form_commerce_cart_form_default_alter(&$form, &$form_state) {
-  $line_item_types = variable_get('commerce_license_line_item_types', array());
-  $line_item_types = array_filter($line_item_types);
+  $line_item_types = commerce_license_line_item_types();
   foreach (element_children($form['edit_quantity']) as $key) {
     $line_item_id = $form['edit_quantity'][$key]['#line_item_id'];
     $line_item = commerce_line_item_load($line_item_id);
@@ -575,9 +586,7 @@ function commerce_license_form_views_form_commerce_cart_form_default_alter(&$for
  * Prevents the combining of license line items on the Add to Cart form.
  */
 function commerce_license_form_commerce_cart_add_to_cart_form_alter(&$form, &$form_state) {
-  $line_item_types = variable_get('commerce_license_line_item_types', array());
-  $line_item_types = array_filter($line_item_types);
-  if (in_array($form_state['line_item']->type, $line_item_types)) {
+  if (in_array($form_state['line_item']->type, commerce_license_line_item_types())) {
     $form_state['line_item']->data['context']['add_to_cart_combine'] = FALSE;
   }
 }

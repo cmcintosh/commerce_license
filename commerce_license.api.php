@@ -17,9 +17,7 @@
  *   The parent product.
  */
 function hook_commerce_license_types_list_alter(&$types, $product) {
-  $product_types = variable_get('commerce_file_product_types', array());
-  $product_types = array_filter($product_types);
-  if (!in_array($product->type, $product_types)) {
+  if (!in_array($product->type, commerce_file_product_types())) {
     unset($types['file']);
   }
 }
