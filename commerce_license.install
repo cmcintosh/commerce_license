@@ -54,6 +54,7 @@ function commerce_license_schema() {
     'primary key' => array('license_id'),
     'indexes' => array(
       'uid' => array('uid'),
+      'type' => array('type'),
       'status' => array('status'),
       'product' => array('product_id'),
     ),
