@@ -127,6 +127,55 @@ interface CommerceLicenseSynchronizableInterface {
 abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInterface, EntityBundlePluginValidableInterface {
 
   /**
+   * The license id.
+   *
+   * @var integer
+   */
+  public $license_id;
+
+  /**
+   * The license type (bundle).
+   *
+   * @var string
+   */
+  public $type;
+
+  /**
+   * The uid of the license owner.
+   *
+   * @var integer
+   */
+  public $uid;
+
+  /**
+   * The product_id of the licensed product.
+   *
+   * @var integer
+   */
+  public $product_id;
+
+  /**
+   * The license status.
+   *
+   * @var integer
+   */
+  public $status = COMMERCE_LICENSE_CREATED;
+
+  /**
+   * The date (unix timestamp) when the license was granted.
+   *
+   * @var integer
+   */
+  public $granted = 0;
+
+  /**
+   * The date (unix timestamp) when the license expires. 0 for never.
+   *
+   * @var integer
+   */
+  public $expires = 0;
+
+  /**
    * License metadata wrapper.
    *
    * @var EntityDrupalWrapper
@@ -138,16 +187,7 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
    *
    * @see Entity::__construct()
    */
-  public function __construct(array $values) {
-    // Provide default values.
-    $values += array(
-      'uid' => 0,
-      'product_id' => 0,
-      'status' => COMMERCE_LICENSE_CREATED,
-      'granted' => 0,
-      'expires' => 0,
-    );
-
+  public function __construct(array $values = array(), $entityType = NULL) {
     parent::__construct($values, 'commerce_license');
     $this->wrapper = entity_metadata_wrapper($this->entityType, $this);
   }
@@ -202,7 +242,7 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
    */
   public function save() {
     $granted = FALSE;
-    if (!empty($this->license_id) && !isset($this->original)) {
+    if (!empty($this->license_id)) {
       $this->original = entity_load_unchanged('commerce_license', $this->license_id);
       if ($this->status > $this->original->status && $this->status == COMMERCE_LICENSE_ACTIVE) {
         // The license was updated, and its status was changed to active.
@@ -219,11 +259,7 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
       $this->granted = REQUEST_TIME;
       // Calculate the expiration timestamp.
       $duration = $this->wrapper->product->commerce_license_duration->value();
-      if ($duration == 0) {
-        // Duration is set to 'unlimited'.
-        $this->expires = 0;
-      }
-      else {
+      if ($duration > 0) {
         $this->expires = REQUEST_TIME + $duration;
       }
     }
@@ -249,8 +285,8 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
    *
    * @see Entity::__construct()
    */
-  public function __construct(array $values) {
-    parent::__construct($values, 'commerce_license');
+  public function __construct(array $values = array(), $entityType = NULL) {
+    parent::__construct($values, $entityType);
 
     // Initialize the sync status.
     // The [LANGUAGE_NONE][0]['value'] = 0; default is then added automatically.
@@ -337,58 +373,21 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
 
 /**
  * Broken implementation of a type plugin.
+ * Used as a fallback when the actual type plugin can't be loaded.
  */
-class CommerceLicenseBroken extends Entity implements CommerceLicenseInterface, EntityBundlePluginValidableInterface  {
+class CommerceLicenseBroken extends CommerceLicenseBase {
 
   /**
    * Throw an exception.
    */
-  public function __construct($values = array()) {
-    throw new CommerceLicenseException(t('Attempt to instantiate broken type plugin'));
+  public function __construct($values = array(), $entityType = NULL) {
+    throw new CommerceLicenseException('Attempted to instantiate a broken license type plugin');
   }
-
-  /**
-   * Implements EntityBundlePluginProvideFieldsInterface::fields().
-   */
-  static function fields() {
-    return array();
-  }
-
-  /**
-   * Implements CommerceLicenseInterface::accessDetails().
-   */
-  public function accessDetails() {}
-
-  /**
-   * Implements CommerceLicenseInterface::isConfigurable().
-   */
-  public function isConfigurable() {}
-
-  /**
-   * Implements CommerceLicenseInterface::form().
-   */
-  public function form(&$form, &$form_state) {}
-
-  /**
-   * Implements CommerceLicenseInterface::formValidate().
-   */
-  public function formValidate($form, &$form_state) {}
-
-  /**
-   * Implements CommerceLicenseInterface::formSubmit().
-   */
-  public function formSubmit(&$form, $form_state) {}
-
-  /**
-   * Implements CommerceLicenseInterface::checkoutCompletionMessage().
-   */
-  public function checkoutCompletionMessage() {}
 
   /**
    * Implements EntityBundlePluginValidableInterface::isValid().
    */
   public static function isValid() {
-    // This plugin is broken.
     return FALSE;
   }
 }
