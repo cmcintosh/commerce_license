@@ -463,8 +463,10 @@ function commerce_license_enqueue_sync($license, $order = NULL) {
  */
 function commerce_license_cron() {
   $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'commerce_license')
+  $query
+    ->entityCondition('entity_type', 'commerce_license')
     ->propertyCondition('status', COMMERCE_LICENSE_ACTIVE)
+    ->propertyCondition('expires', 0, '<>')
     ->propertyCondition('expires', REQUEST_TIME, '<=');
   $results = $query->execute();
   if (!empty($results['commerce_license'])) {
