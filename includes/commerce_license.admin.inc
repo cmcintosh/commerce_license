@@ -28,7 +28,7 @@ function commerce_license_settings_form($form, &$form_state) {
   $form['commerce_license_line_item_types'] = array(
     '#title' => t('Line item types'),
     '#type' => 'checkboxes',
-    '#default_value' => variable_get('commerce_license_line_item_types', array()),
+    '#default_value' => variable_get('commerce_license_line_item_types', array_keys($line_item_types)),
     '#options' => $line_item_types,
   );
 
