@@ -355,12 +355,17 @@ function commerce_license_commerce_line_item_delete($line_item) {
 
 /**
  * Implements hook_commerce_order_update().
- *
- * Assigns all licenses of an order to the correct user once the conversion
- * from an anonymous shopping cart to an authenticated cart happens.
  */
 function commerce_license_commerce_order_update($order) {
   $licenses = commerce_license_get_order_licenses($order);
+  // The order was canceled, revoke all of its licenses.
+  if ($order->status != $order->original->status && $order->status == 'canceled') {
+    foreach ($licenses as $license) {
+      $license->status = COMMERCE_LICENSE_REVOKED;
+      entity_save('commerce_license', $license);
+    }
+  }
+  // Make sure the license is assigned to the correct user.
   foreach ($licenses as $license) {
     if ($license->uid != $order->uid) {
       $license->uid = $order->uid;
