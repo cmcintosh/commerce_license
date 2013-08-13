@@ -337,6 +337,7 @@ function commerce_license_commerce_line_item_presave($line_item) {
     $type = $line_item_wrapper->commerce_product->commerce_license_type->value();
     $license = entity_create('commerce_license', array('type' => $type));
     $license->product_id = $line_item_wrapper->commerce_product->product_id->value();
+    $license->uid = $GLOBALS['user']->uid;
     $license->save();
     $line_item_wrapper->commerce_license = $license;
   }

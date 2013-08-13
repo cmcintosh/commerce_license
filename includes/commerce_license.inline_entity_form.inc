@@ -80,6 +80,9 @@ class CommerceLicenseInlineEntityFormController extends EntityInlineEntityFormCo
     if (!empty($form_state['commerce_order'])) {
       $license->uid = $form_state['commerce_order']->uid;
     }
+    else {
+      $license->uid = $GLOBALS['user']->uid;
+    }
     // $license->product_id is maintained by
     // commerce_license_commerce_line_item_presave().
 
