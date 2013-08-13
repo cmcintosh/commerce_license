@@ -770,11 +770,12 @@ function commerce_license_status_options_list() {
 
 /**
  * Returns the access details of an activated license, or "N/A" if the license
- * hasn't been activated yet.
+ * hasn't been activated yet or has no access details.
  */
 function commerce_license_get_access_details($license) {
   if ($license->status > COMMERCE_LICENSE_PENDING) {
-    return $license->accessDetails();
+    $access_details = $license->accessDetails();
+    return $access_details ? $access_details : t('N/A');
   }
   else {
     // This license hasn't been activated yet.
