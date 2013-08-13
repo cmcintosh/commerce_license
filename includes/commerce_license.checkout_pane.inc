@@ -63,9 +63,10 @@ function commerce_license_information_checkout_form_submit($form, &$form_state, 
  *
  * Outputs a pane for each found license.
  * Synchronizable licenses are shown in a pane that refreshes itself
- * periodically, allowing the customer to follow the synchronization process.
- * If the license doesn't get synchronized within 30 seconds, the refresh
- * process is stopped, and the license synchronization is marked as failed.
+ * periodically (every 2s by default), allowing the customer to follow the synchronization process.
+ * If the license doesn't get synchronized within $refresh_timeout seconds
+ * (60s by default), the refresh process is stopped, and the license
+ * synchronization is marked as failed.
  */
 function commerce_license_complete_checkout_form($form, &$form_state, $checkout_pane, $order) {
   $pane_form = array();
@@ -88,8 +89,8 @@ function commerce_license_complete_checkout_form($form, &$form_state, $checkout_
     // Get the message to show.
     $message = t('Your license will be activated once your payment has been processed.');
     if ($order_paid) {
-      $refresh_rate = $synchronizable ? COMMERCE_LICENSE_CHECK_REFRESH_RATE : NULL;
-      $message = commerce_license_checkout_competion_message($license, $refresh_rate);
+      $refresh = $synchronizable ? TRUE : FALSE;
+      $message = commerce_license_checkout_competion_message($license, $refresh);
     }
 
     $title_arguments = array(
@@ -110,30 +111,32 @@ function commerce_license_complete_checkout_form($form, &$form_state, $checkout_
 /**
  * Ajax callback for the license completion message checkout pane.
  *
- * Called once every second, until the synchronization is marked
- * as successful / failed, or until it timeouts (within 30 seconds).
+ * Called once every $refresh_rate seconds (2s by default), until the
+ * synchronization is marked as successful / failed, or until it timeouts
+ * (60s by default).
  */
 function commerce_license_complete_checkout_ajax_callback($license) {
-  // Get the refresh delay, initialize it if empty.
-  $session_key = 'commerce_license_refresh_rate_' . $license->license_id;
+  $session_key = 'commerce_license_refresh_start_' . $license->license_id;
   if (!isset($_SESSION[$session_key])) {
-    $_SESSION[$session_key] = COMMERCE_LICENSE_CHECK_REFRESH_RATE;
+    $_SESSION[$session_key] = REQUEST_TIME;
   }
-  $refresh_delay = $_SESSION[$session_key] = $_SESSION[$session_key] + 1000;
   // Check if the refresh has timed out.
-  if ($refresh_delay > COMMERCE_LICENSE_CHECK_REFRESH_TIMEOUT) {
+  $refresh_time = REQUEST_TIME - $_SESSION[$session_key];
+  $refresh_timeout = variable_get('commerce_license_refresh_timeout', 60);
+  if ($refresh_time > $refresh_timeout) {
     $license->wrapper->sync_status = COMMERCE_LICENSE_SYNC_FAILED;
     $license->save();
   }
   // Stop the refresh if synchronization has ended (succeeded, failed).
+  $refresh = TRUE;
   $sync_status = $license->wrapper->sync_status->value();
   if (in_array($sync_status, array(COMMERCE_LICENSE_SYNCED, COMMERCE_LICENSE_SYNC_FAILED))) {
     unset($_SESSION[$session_key]);
-    $refresh_delay = FALSE;
+    $refresh = FALSE;
   }
 
   // Get the message.
-  $message = commerce_license_checkout_competion_message($license, $refresh_delay);
+  $message = commerce_license_checkout_competion_message($license, $refresh);
   return array(
     '#type' => 'ajax',
     '#commands' => array(
@@ -147,14 +150,14 @@ function commerce_license_complete_checkout_ajax_callback($license) {
  *
  * @param $license
  *   The license entity.
- * @param $refresh_delay
- *   The refresh delay to be added to the div, in miliseconds.
- *   If NULL, it is assumed that the refresh has been stopped.
+ * @param $refresh
+ *   Whether the checkout completion message should be refreshed via AJAX
+ *   in set intervals.
  *
  * @return
  *   A string containing the success text.
  */
-function commerce_license_checkout_competion_message($license, $refresh_delay = NULL) {
+function commerce_license_checkout_competion_message($license, $refresh = FALSE) {
   $element = array(
     '#type' => 'container',
     '#attributes' => array(
@@ -168,10 +171,10 @@ function commerce_license_checkout_competion_message($license, $refresh_delay = 
     ),
   );
   // Add data attributes for the refresh process.
-  if ($refresh_delay) {
+  if ($refresh) {
     $element['#attributes'] += array(
       'data-refresh-url' => base_path() . 'ajax/commerce_license/' . $license->license_id,
-      'data-refresh-delay' => $refresh_delay,
+      'data-refresh-rate' => variable_get('commerce_license_refresh_rate', 2),
     );
   }
 

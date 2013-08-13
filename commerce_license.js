@@ -14,14 +14,15 @@
       });
       // We want this to be executed each time the behaviors are reattached.
       $('.commerce-license-checkout').each(function() {
-        if (typeof $(this).data('refresh-delay') != 'undefined') {
-          var refreshDelay = $(this).data('refresh-delay');
+        if (typeof $(this).data('refresh-rate') != 'undefined') {
+          // Convert the refresh rate into milliseconds.
+          var refreshRate = $(this).data('refresh-rate') * 1000;
           var elm = $(this);
-          if (refreshDelay != 0) {
+          if (refreshRate != 0) {
             setTimeout(function() {
               elm.trigger('license-refresh-event');
             },
-              refreshDelay
+              refreshRate
             );
           }
         }

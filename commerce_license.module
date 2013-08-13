@@ -17,10 +17,6 @@ define('COMMERCE_LICENSE_NEEDS_SYNC', 1);
 define('COMMERCE_LICENSE_SYNCED', 2);
 define('COMMERCE_LICENSE_SYNC_FAILED', 3);
 
-// Refresh rates for the ajax polling.
-define('COMMERCE_LICENSE_CHECK_REFRESH_RATE', 1000);
-define('COMMERCE_LICENSE_CHECK_REFRESH_TIMEOUT', 40000);
-
 /**
  * Implements hook_menu().
  */

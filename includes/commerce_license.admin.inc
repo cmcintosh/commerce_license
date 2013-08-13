@@ -32,6 +32,36 @@ function commerce_license_settings_form($form, &$form_state) {
     '#options' => $line_item_types,
   );
 
+  if (module_exists('advancedqueue')) {
+    $form['refresh_settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Refresh settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['refresh_settings']['help'] = array(
+      '#markup' => t('If a license is synchronizable, the "License completion message" checkout pane will refresh itself periodically, allowing the customer to follow the synchronization process.'),
+    );
+    $form['refresh_settings']['commerce_license_refresh_rate'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Refresh rate'),
+      '#field_suffix' => t('seconds'),
+      '#description' => t('How often should the checkout pane refresh (e.g. every 2 seconds).'),
+      '#default_value' => variable_get('commerce_license_refresh_rate', 2),
+      '#size' => 4,
+      '#element_validate' => array('element_validate_number'),
+    );
+    $form['refresh_settings']['commerce_license_refresh_timeout'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Refresh timeout'),
+      '#field_suffix' => t('seconds'),
+      '#description' => t('How long should the refresh be performed until it is stopped (e.g. 60 seconds).'),
+      '#default_value' => variable_get('commerce_license_refresh_timeout', 60),
+      '#size' => 4,
+      '#element_validate' => array('element_validate_number'),
+    );
+  }
+
   $form = system_settings_form($form);
   $form['#submit'][] = 'commerce_license_settings_form_submit';
   return $form;
