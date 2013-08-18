@@ -10,7 +10,9 @@
  * Outputs a pane for each found license.
  */
 function commerce_license_information_checkout_form($form, &$form_state, $checkout_pane, $order) {
-  $pane_form = array();
+  $pane_form = array(
+    '#type' => 'container',
+  );
   $licenses = commerce_license_get_order_licenses($order, TRUE);
   foreach ($licenses as $license) {
     $license_id = $license->license_id;
@@ -18,8 +20,10 @@ function commerce_license_information_checkout_form($form, &$form_state, $checko
       '@product_title' => $license->wrapper->product->title->value(),
     );
     $pane_form[$license_id] = array(
-      '#type' => 'fieldset',
+      '#type' => $checkout_pane['fieldset'] ? 'fieldset' : 'container',
       '#title' => t('License information - @product_title', $title_arguments),
+      '#collapsible' => $checkout_pane['collapsible'],
+      '#collapsed' => $checkout_pane['collapsed'],
       '#parents' => array($license_id),
       '#tree' => TRUE,
     );
@@ -69,7 +73,9 @@ function commerce_license_information_checkout_form_submit($form, &$form_state, 
  * synchronization is marked as failed.
  */
 function commerce_license_complete_checkout_form($form, &$form_state, $checkout_pane, $order) {
-  $pane_form = array();
+  $pane_form = array(
+    '#type' => 'container',
+  );
   $balance = commerce_payment_order_balance($order);
   $order_paid = ($balance && $balance['amount'] <= 0);
   $js_attached = FALSE;
@@ -97,8 +103,10 @@ function commerce_license_complete_checkout_form($form, &$form_state, $checkout_
       '@product_title' => $license->wrapper->product->title->value(),
     );
     $pane_form[$license->license_id] = array(
-      '#type' => 'fieldset',
+      '#type' => $checkout_pane['fieldset'] ? 'fieldset' : 'container',
       '#title' => t('License information - @product_title', $title_arguments),
+      '#collapsible' => $checkout_pane['collapsible'],
+      '#collapsed' => $checkout_pane['collapsed'],
       'output' => array(
         '#markup' => $message,
       ),
