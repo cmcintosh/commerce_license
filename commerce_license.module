@@ -231,7 +231,7 @@ function commerce_license_commerce_checkout_pane_info() {
     'file' => 'includes/commerce_license.checkout_pane.inc',
     'base' => 'commerce_license_information',
     'page' => 'checkout',
-    'fieldset' => FALSE,
+    'fieldset' => TRUE,
     'enabled' => FALSE,
   );
   $checkout_panes['commerce_license_complete'] = array(
@@ -239,7 +239,7 @@ function commerce_license_commerce_checkout_pane_info() {
     'file' => 'includes/commerce_license.checkout_pane.inc',
     'base' => 'commerce_license_complete',
     'page' => 'complete',
-    'fieldset' => FALSE,
+    'fieldset' => TRUE,
     'enabled' => FALSE,
   );
 
