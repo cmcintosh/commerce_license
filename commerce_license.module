@@ -544,18 +544,20 @@ function commerce_license_cron_queue_info() {
  */
 function commerce_license_expiration_queue_process($item) {
   $license = entity_load_single('commerce_license', $item->data['license_id']);
-  $license->status = COMMERCE_LICENSE_EXPIRED;
-  $license->save();
-  // If the license is synchronizable, queue it for synchronization.
-  if ($license instanceof CommerceLicenseSynchronizableInterface) {
-    commerce_license_enqueue_sync($license);
+  if ($license) {
+    $license->status = COMMERCE_LICENSE_EXPIRED;
+    $license->save();
+    // If the license is synchronizable, queue it for synchronization.
+    if ($license instanceof CommerceLicenseSynchronizableInterface) {
+      commerce_license_enqueue_sync($license);
+    }
   }
 
   if (module_exists('advancedqueue')) {
     // If advancedqueue is used, return the proper status.
     return array(
       'status' => ADVANCEDQUEUE_STATUS_SUCCESS,
-      'result' => 'Processed license #' . $license->license_id,
+      'result' => 'Processed license #' . $item->data['license_id'],
     );
   }
 }
@@ -565,6 +567,13 @@ function commerce_license_expiration_queue_process($item) {
  */
 function commerce_license_synchronization_queue_process($item) {
   $license = entity_load_single('commerce_license', $item->data['license_id']);
+  if (!$license) {
+    return array(
+      'status' => ADVANCEDQUEUE_STATUS_FAILURE,
+      'result' => 'License #' . $item->data['license_id'] . ' no longer exists',
+    );
+  }
+
   $synchronize = $license->synchronize();
   if (!$synchronize) {
     $license->wrapper->sync_status = COMMERCE_LICENSE_SYNC_FAILED;
