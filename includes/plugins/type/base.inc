@@ -254,13 +254,14 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
       $granted = TRUE;
     }
 
-    if ($granted) {
-      // The license was just activated, set the granted timestamp.
+    // The license was just activated, set the granted timestamp and calculate
+    // the expiration timestamp. Only do that if the timestamps are currently
+    // empty (they might be set already, for example during a migration).
+    if ($granted && empty($this->granted) && empty($this->expires)) {
       $this->granted = REQUEST_TIME;
-      // Calculate the expiration timestamp.
       $duration = $this->wrapper->product->commerce_license_duration->value();
       if ($duration > 0) {
-        $this->expires = REQUEST_TIME + $duration;
+        $this->expires = $this->granted + $duration;
       }
     }
 
