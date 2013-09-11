@@ -23,3 +23,26 @@ function commerce_license_rules_event_info() {
 
   return $events;
 }
+
+/**
+ * Implements hook_rules_action_info().
+ */
+function commerce_license_rules_action_info() {
+  $actions = array();
+
+  $actions['commerce_license_activate_order_licenses'] = array(
+    'label' => t('Activates all licenses of the provided order'),
+    'parameter' => array(
+      'commerce_order' => array(
+        'type' => 'commerce_order',
+        'label' => t('Order in checkout'),
+      ),
+    ),
+    'group' => t('Commerce License'),
+    'callbacks' => array(
+      'execute' => 'commerce_license_activate_order_licenses',
+    ),
+  );
+
+  return $actions;
+}

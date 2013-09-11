@@ -376,28 +376,6 @@ function commerce_license_commerce_order_update($order) {
 }
 
 /**
- * Implements hook_commerce_payment_order_paid_in_full().
- *
- * Activates all licenses of a paid order.
- */
-function commerce_license_commerce_payment_order_paid_in_full($order, $transaction) {
-  commerce_license_activate_order_licenses($order);
-}
-
-/**
- * Implements hook_commerce_checkout_complete().
- *
- * Activates all licenses of a free order.
- */
-function commerce_license_commerce_checkout_complete($order) {
-  $wrapper = entity_metadata_wrapper('commerce_order', $order);
-  $order_total = $wrapper->commerce_order_total->value();
-  if ($order_total['amount'] == 0) {
-    commerce_license_activate_order_licenses($order);
-  }
-}
-
-/**
  * Activates all licenses of the provided order.
  *
  * @param $order
