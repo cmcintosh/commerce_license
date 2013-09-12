@@ -472,7 +472,8 @@ function commerce_license_cron() {
     ->entityCondition('entity_type', 'commerce_license')
     ->propertyCondition('status', COMMERCE_LICENSE_ACTIVE)
     ->propertyCondition('expires', 0, '<>')
-    ->propertyCondition('expires', REQUEST_TIME, '<=');
+    ->propertyCondition('expires', REQUEST_TIME, '<=')
+    ->propertyCondition('expires_automatically', 1);
   $results = $query->execute();
   if (!empty($results['commerce_license'])) {
     foreach (array_keys($results['commerce_license']) as $license_id) {

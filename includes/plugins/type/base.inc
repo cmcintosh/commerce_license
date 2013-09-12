@@ -176,6 +176,18 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
   public $expires = 0;
 
   /**
+   * Whether the module should expire the license automatically.
+   *
+   * If TRUE, the license that has expired according to its 'expires' timestamp
+   * will be processed on cron and its status set to COMMERCE_LICENSE_EXPIRED.
+   * If FALSE, the license will be left alone, usually because it is already
+   * being handled by a recurring billing module.
+   *
+   * @var bool
+   */
+  public $expires_automatically = TRUE;
+
+  /**
    * License metadata wrapper.
    *
    * @var EntityDrupalWrapper
