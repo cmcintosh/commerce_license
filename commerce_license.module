@@ -521,7 +521,10 @@ function commerce_license_cron_queue_info() {
  * Worker callback for expiring licenses.
  */
 function commerce_license_expiration_queue_process($item) {
-  $license = entity_load_single('commerce_license', $item->data['license_id']);
+  // Account for differences in how the different queues process items.
+  $data = module_exists('advancedqueue') ? $item->data : $item;
+
+  $license = entity_load_single('commerce_license', $data['license_id']);
   if ($license) {
     $license->status = COMMERCE_LICENSE_EXPIRED;
     $license->save();
@@ -535,7 +538,7 @@ function commerce_license_expiration_queue_process($item) {
     // If advancedqueue is used, return the proper status.
     return array(
       'status' => ADVANCEDQUEUE_STATUS_SUCCESS,
-      'result' => 'Processed license #' . $item->data['license_id'],
+      'result' => 'Processed license #' . $data['license_id'],
     );
   }
 }
