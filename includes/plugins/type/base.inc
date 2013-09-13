@@ -134,6 +134,13 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
   public $license_id;
 
   /**
+   * The revision id.
+   *
+   * @var integer
+   */
+  public $revision_id;
+
+  /**
    * The license type (bundle).
    *
    * @var string

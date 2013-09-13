@@ -97,8 +97,9 @@ function commerce_license_entity_info() {
   $return = array(
     'commerce_license' => array(
       'label' => t('Commerce License'),
-      'controller class' => 'EntityBundlePluginEntityController',
+      'controller class' => 'CommerceLicenseEntityController',
       'base table' => 'commerce_license',
+      'revision table' => 'commerce_license_revision',
       'module' => 'commerce_license',
       'bundle plugin' => array(
         'plugin type' => 'type',
@@ -109,6 +110,7 @@ function commerce_license_entity_info() {
       'entity keys' => array(
         'id' => 'license_id',
         'bundle' => 'type',
+        'revision' => 'revision_id',
       ),
       'view modes' => array(
         'full' => array(
