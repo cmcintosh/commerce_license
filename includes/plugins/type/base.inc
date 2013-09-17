@@ -99,6 +99,14 @@ interface CommerceLicenseInterface extends EntityBundlePluginProvideFieldsInterf
    */
   public function checkoutCompletionMessage();
 
+  /**
+   * Renews the license.
+   *
+   * @param $expires
+   *   The new expiration timestamp.
+   */
+  public function renew($expires);
+
 }
 
 /**
@@ -255,6 +263,14 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
    * Implements CommerceLicenseInterface::checkoutCompletionMessage().
    */
   public function checkoutCompletionMessage() {}
+
+  /**
+   * Implements CommerceLicenseInterface::renew().
+   */
+  public function renew($expires) {
+    $this->expires = $expires;
+    $this->save();
+  }
 
   /**
    * Overrides Entity::save().
