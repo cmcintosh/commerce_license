@@ -73,5 +73,5 @@ function commerce_license_settings_form($form, &$form_state) {
 function commerce_license_settings_form_submit($form, &$form_state) {
   // This will create the required fields on any newly selected types,
   // and remove them from any newly deselected types.
-  commerce_license_flush_caches();
+  drupal_flush_all_caches();
 }
