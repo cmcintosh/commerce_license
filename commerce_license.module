@@ -10,6 +10,7 @@ define('COMMERCE_LICENSE_CREATED', 0);
 define('COMMERCE_LICENSE_PENDING', 1);
 define('COMMERCE_LICENSE_ACTIVE', 2);
 define('COMMERCE_LICENSE_EXPIRED', 3);
+define('COMMERCE_LICENSE_SUSPENDED', 5);
 define('COMMERCE_LICENSE_REVOKED', 4);
 
 // License synchronization statuses.
