@@ -8,13 +8,23 @@
 class CommerceLicenseEntityController extends EntityBundlePluginEntityController {
 
   /**
+   * Overrides EntityBundlePluginEntityController::save().
+   */
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    $entity->is_new_revision = !empty($entity->is_new_revision) || !empty($entity->revision) || !empty($entity->is_new);
+    // New revisions are always set as default.
+    if ($entity->is_new_revision) {
+      $entity->default_revision = TRUE;
+    }
+    parent::save($entity, $transaction);
+  }
+
+  /**
    * Overrides EntityBundlePluginEntityController::saveRevision().
    *
    * Maintains the revision_created and revision_ended timestamps.
    */
   protected function saveRevision($entity) {
-    $entity->is_new_revision = !empty($entity->is_new_revision) || !empty($entity->revision) || $entity->is_new;
-
     if ($entity->is_new_revision) {
       $entity->revision_created = REQUEST_TIME;
       $entity->revision_ended = 0;
@@ -22,14 +32,10 @@ class CommerceLicenseEntityController extends EntityBundlePluginEntityController
       // A previous revision exists, close it.
       if (!empty($entity->revision_id)) {
         $previous_revision = entity_revision_load('commerce_license', $entity->revision_id);
-        $previous_revision->revision_ended = REQUEST_TIME - 1;
-        $previous_revision->save();
-      }
-    }
-    else {
-      // If the revision being saved has no end timestamp, it's default.
-      if (empty($entity->revision_ended)) {
-        $entity->default_revision = TRUE;
+        db_update($this->revisionTable)
+          ->fields(array('revision_ended'  => REQUEST_TIME - 1))
+          ->condition('revision_id', $previous_revision->revision_id)
+          ->execute();
       }
     }
 
