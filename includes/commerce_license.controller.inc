@@ -31,10 +31,9 @@ class CommerceLicenseEntityController extends EntityBundlePluginEntityController
 
       // A previous revision exists, close it.
       if (!empty($entity->revision_id)) {
-        $previous_revision = entity_revision_load('commerce_license', $entity->revision_id);
         db_update($this->revisionTable)
           ->fields(array('revision_ended'  => REQUEST_TIME - 1))
-          ->condition('revision_id', $previous_revision->revision_id)
+          ->condition('revision_id', $entity->revision_id)
           ->execute();
       }
     }
