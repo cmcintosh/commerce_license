@@ -11,6 +11,7 @@ dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = entity_bundle_plugin
 dependencies[] = entityreference
+dependencies[] = list
 dependencies[] = number
 
 files[] = commerce_license.info.inc
