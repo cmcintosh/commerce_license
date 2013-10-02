@@ -328,7 +328,7 @@ function commerce_license_commerce_line_item_presave($line_item) {
   $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
   $product = $line_item_wrapper->commerce_product->value();
   // The line item has a license, maintain its product_id value.
-  if (!empty($line_item->commerce_license)) {
+  if (!empty($line_item->commerce_license) && $line_item_wrapper->commerce_license->value()) {
     $license = $line_item_wrapper->commerce_license->value();
     if (empty($license->product_id) || $license->product_id != $product->product_id) {
       $license->product_id = $line_item_wrapper->commerce_product->product_id->value();
