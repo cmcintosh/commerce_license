@@ -389,9 +389,9 @@ function commerce_license_activate_order_licenses($order) {
   foreach ($licenses as $license) {
     if ($license instanceof CommerceLicenseSynchronizableInterface) {
       // Synchronizable licenses are actived after they have been synchronized.
-      $license->status = COMMERCE_LICENSE_PENDING;
+      $license->wrapper->status = COMMERCE_LICENSE_PENDING;
+      $license->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
       $license->save();
-      commerce_license_enqueue_sync($license, $order);
     }
     else {
       $license->status = COMMERCE_LICENSE_ACTIVE;
@@ -431,32 +431,13 @@ function commerce_license_get_order_licenses($order, $configurable = FALSE) {
  *
  * @param $license
  *   The license entity.
- * @param $order
- *   An optional order entity, if the function is called in an order context.
- *   Used to set a more precise queue item title.
  */
-function commerce_license_enqueue_sync($license, $order = NULL) {
-  $license->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
-  $license->wrapper->save();
-
+function commerce_license_enqueue_sync($license) {
   $queue = DrupalQueue::get('commerce_license_synchronization');
-  // Prepare a friendly title for the queue item.
-  if ($order) {
-    $args = array(
-      '@license_id' => $license->license_id,
-      '@number' => $order->order_number,
-    );
-    $item_title = t('License #@license_id (Order #@number)', $args);
-  }
-  else {
-    $args = array('@license_id' => $license->license_id);
-    $item_title = t('License #@license_id', $args);
-  }
-
   $task = array(
     'uid' => $license->uid,
     'license_id' => $license->license_id,
-    'title' => $item_title,
+    'title' => t('License #@license_id', array('@license_id' => $license->license_id)),
   );
   $queue->createItem($task);
 }
@@ -530,12 +511,12 @@ function commerce_license_expiration_queue_process($item) {
 
   $license = entity_load_single('commerce_license', $data['license_id']);
   if ($license) {
-    $license->status = COMMERCE_LICENSE_EXPIRED;
-    $license->save();
+    $license->wrapper->status = COMMERCE_LICENSE_EXPIRED;
     // If the license is synchronizable, queue it for synchronization.
     if ($license instanceof CommerceLicenseSynchronizableInterface) {
-      commerce_license_enqueue_sync($license);
+      $license->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
     }
+    $license->save();
   }
 
   if (module_exists('advancedqueue')) {

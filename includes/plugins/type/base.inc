@@ -398,6 +398,32 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
   }
 
   /**
+   * Overrides Entity::save().
+   */
+  public function save() {
+    // If this is an update, get the original sync status for later comparison.
+    $original_sync_status = NULL;
+    if (!empty($this->license_id)) {
+      $this->original = entity_load_unchanged('commerce_license', $this->license_id);
+      $original_sync_status = $this->original->wrapper->sync_status->value();
+    }
+
+    // Perform the save. This allows a presave / insert / update hook to
+    // request synchronization by changing the sync_status field.
+    parent::save();
+
+    // Enqueue the sync if needed. Make sure not to enqueue if the license
+    // alredy needed sync before this update.
+    $sync_status = $this->wrapper->sync_status->value();
+    $needs_sync = ($sync_status == COMMERCE_LICENSE_NEEDS_SYNC);
+    $new_license = empty($this->license_id);
+    $sync_status_changed = ($original_sync_status != $sync_status);
+    if ($needs_sync && ($new_license || $sync_status_changed)) {
+      commerce_license_enqueue_sync($this);
+    }
+  }
+
+  /**
    * Overrides CommerceLicenseBase::isValid().
    */
   public static function isValid() {
