@@ -125,11 +125,12 @@ function commerce_license_complete_checkout_form($form, &$form_state, $checkout_
  */
 function commerce_license_complete_checkout_ajax_callback($license) {
   $session_key = 'commerce_license_refresh_start_' . $license->license_id;
+  $current_time = commerce_license_get_time();
   if (!isset($_SESSION[$session_key])) {
-    $_SESSION[$session_key] = REQUEST_TIME;
+    $_SESSION[$session_key] = $current_time;
   }
   // Check if the refresh has timed out.
-  $refresh_time = REQUEST_TIME - $_SESSION[$session_key];
+  $refresh_time = $current_time - $_SESSION[$session_key];
   $refresh_timeout = variable_get('commerce_license_refresh_timeout', 60);
   if ($refresh_time > $refresh_timeout) {
     $license->wrapper->sync_status = COMMERCE_LICENSE_SYNC_FAILED;

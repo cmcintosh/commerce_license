@@ -26,13 +26,14 @@ class CommerceLicenseEntityController extends EntityBundlePluginEntityController
    */
   protected function saveRevision($entity) {
     if ($entity->is_new_revision) {
-      $entity->revision_created = REQUEST_TIME;
+      $current_time = commerce_license_get_time();
+      $entity->revision_created = $current_time;
       $entity->revision_ended = 0;
 
       // A previous revision exists, close it.
       if (!empty($entity->revision_id)) {
         db_update($this->revisionTable)
-          ->fields(array('revision_ended'  => REQUEST_TIME - 1))
+          ->fields(array('revision_ended'  => $current_time - 1))
           ->condition('revision_id', $entity->revision_id)
           ->execute();
       }

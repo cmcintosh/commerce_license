@@ -19,6 +19,40 @@ define('COMMERCE_LICENSE_SYNCED', 2);
 define('COMMERCE_LICENSE_SYNC_FAILED', 3);
 
 /**
+ * Sets the current time.
+ *
+ * Allows the current time to be overriden for testing purposes.
+ * If time hasn't been overriden, REQUEST_TIME is returned by default.
+ *
+ * @param $time
+ *   The unix timestamp to use as the current timestamp.
+ *
+ * @return
+ *   The updated current timestamp.
+ */
+function commerce_license_set_time($time = NULL) {
+  $cached_time = &drupal_static(__FUNCTION__, REQUEST_TIME);
+  if ($time) {
+    $cached_time = $time;
+  }
+
+  return $cached_time;
+}
+
+/**
+ * Returns the current timestamp.
+ *
+ * Should be used for all licensing purposes instead of REQUEST_TIME, to allow
+ * for easier automated testing.
+ *
+ * @return
+ *   The current timestamp.
+ */
+function commerce_license_get_time() {
+  return commerce_license_set_time();
+}
+
+/**
  * Implements hook_menu().
  */
 function commerce_license_menu() {
@@ -456,7 +490,7 @@ function commerce_license_cron() {
     ->entityCondition('entity_type', 'commerce_license')
     ->propertyCondition('status', COMMERCE_LICENSE_ACTIVE)
     ->propertyCondition('expires', 0, '<>')
-    ->propertyCondition('expires', REQUEST_TIME, '<=')
+    ->propertyCondition('expires', commerce_license_get_time(), '<=')
     ->propertyCondition('expires_automatically', 1);
   $results = $query->execute();
   if (!empty($results['commerce_license'])) {
