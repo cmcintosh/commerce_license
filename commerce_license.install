@@ -312,3 +312,17 @@ function commerce_license_update_7101(&$sandbox) {
 
   return t('The update for license revisions ran successfully.');
 }
+
+/**
+ * Change the label of the commerce_license_duration field from
+ * 'License expiration' to 'License duration'.
+ */
+function commerce_license_update_7102(&$sandbox) {
+  foreach (commerce_license_product_types() as $product_type) {
+    $instance = field_info_instance('commerce_product', 'commerce_license_duration', $product_type);
+    if ($instance['label'] == 'License expiration') {
+      $instance['label'] = 'License duration';
+      field_update_instance($instance);
+    }
+  }
+}

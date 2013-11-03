@@ -697,7 +697,7 @@ function commerce_license_configure_product_types($types) {
       'field_name' => 'commerce_license_duration',
       'entity_type' => 'commerce_product',
       'bundle' => $new_bundle,
-      'label' => t('License expiration'),
+      'label' => t('License duration'),
       'required' => TRUE,
       'widget' => array(
         'type' => 'commerce_license_duration',
@@ -829,7 +829,7 @@ function commerce_license_field_widget_info() {
     );
   }
   $widgets['commerce_license_duration'] = array(
-    'label' => t('License expiration'),
+    'label' => t('License duration'),
     'field types' => array('text'),
   );
 
