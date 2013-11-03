@@ -988,6 +988,43 @@ function commerce_license_duration_validate($element, &$form_state) {
 }
 
 /**
+ * Implements hook_field_formatter_info().
+ */
+function commerce_license_field_formatter_info() {
+  return array(
+    'commerce_license_duration' => array(
+      'label' => t('License duration'),
+      'field types' => array('number_integer'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function commerce_license_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  if ($display['type'] == 'commerce_license_duration') {
+    $units = commerce_license_duration_units();
+    foreach ($items as $delta => $item) {
+      if ($item['value'] > 0) {
+        list($value, $unit) = commerce_license_duration_from_timestamp($item['value']);
+        $duration = $value . ' ' . $units[$unit];
+      }
+      else {
+        $duration = t('Unlimited');
+      }
+
+      $element[$delta] = array(
+        '#markup' => $duration,
+      );
+    }
+  }
+
+  return $element;
+}
+
+/**
  * Returns all defined duration units.
  *
  * @return
