@@ -309,6 +309,10 @@ function commerce_license_update_7101(&$sandbox) {
 
     $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
   }
+  else {
+    // No licenses needed conversion, nothing else to be done.
+    $sandbox['#finished'] = 1;
+  }
 
   return t('The update for license revisions ran successfully.');
 }
