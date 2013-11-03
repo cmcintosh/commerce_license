@@ -607,13 +607,21 @@ function commerce_license_synchronization_queue_process($item) {
  */
 function commerce_license_form_views_form_commerce_cart_form_default_alter(&$form, &$form_state) {
   $line_item_types = commerce_license_line_item_types();
+  $product_types = commerce_license_product_types();
   foreach (element_children($form['edit_quantity']) as $key) {
     $line_item_id = $form['edit_quantity'][$key]['#line_item_id'];
     $line_item = commerce_line_item_load($line_item_id);
+    // Check whether the line item can contain licenses. This also ensures we're
+    // dealing with a product line item (there's a commerce_product field).
     if (in_array($line_item->type, $line_item_types)) {
-      $quantity = $form['edit_quantity'][$key]['#default_value'];
-      $form['edit_quantity'][$key]['#type'] = 'value';
-      $form['edit_quantity'][$key]['#suffix'] = check_plain($quantity);
+      // Check whether the product is licensable, since the line item might be
+      // able to hold both licensable and non-licensable products.
+      $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+      if (in_array($line_item_wrapper->commerce_product->type->value(), $product_types)) {
+        $quantity = $form['edit_quantity'][$key]['#default_value'];
+        $form['edit_quantity'][$key]['#type'] = 'value';
+        $form['edit_quantity'][$key]['#suffix'] = check_plain($quantity);
+      }
     }
   }
 }
@@ -625,7 +633,13 @@ function commerce_license_form_views_form_commerce_cart_form_default_alter(&$for
  */
 function commerce_license_form_commerce_cart_add_to_cart_form_alter(&$form, &$form_state) {
   if (in_array($form_state['line_item']->type, commerce_license_line_item_types())) {
-    $form_state['line_item']->data['context']['add_to_cart_combine'] = FALSE;
+    // Check whether the product is licensable, since the line item might be
+    // able to hold both licensable and non-licensable products.
+    $product_types = commerce_license_product_types();
+    $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $form_state['line_item']);
+    if (in_array($line_item_wrapper->commerce_product->type->value(), $product_types)) {
+      $form_state['line_item']->data['context']['add_to_cart_combine'] = FALSE;
+    }
   }
 }
 
