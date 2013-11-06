@@ -135,6 +135,9 @@ function commerce_license_complete_checkout_ajax_callback($license) {
   if ($refresh_time > $refresh_timeout) {
     $license->wrapper->sync_status = COMMERCE_LICENSE_SYNC_FAILED;
     $license->save();
+    // Fire a rules event and a hook, allowing developers to respond
+    // to a failed synchronization.
+    rules_invoke_all('commerce_license_synchronize_failed', $license);
   }
   // Stop the refresh if synchronization has ended (succeeded, failed).
   $refresh = TRUE;

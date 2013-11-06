@@ -11,12 +11,22 @@
 function commerce_license_rules_event_info() {
   $events = array();
   $events['commerce_license_synchronize'] = array(
-    'label' => t('After synchronizing a license'),
+    'label' => t('After successfuly synchronizing a license'),
     'group' => t('Commerce License'),
     'variables' => array(
       'commerce_license' => array(
         'type' => 'commerce_license',
-        'label' => t('A synchronized license'),
+        'label' => t('The license'),
+      ),
+    ),
+  );
+  $events['commerce_license_synchronize_failed'] = array(
+    'label' => t('After failing to synchronize a license'),
+    'group' => t('Commerce License'),
+    'variables' => array(
+      'commerce_license' => array(
+        'type' => 'commerce_license',
+        'label' => t('The license'),
       ),
     ),
   );

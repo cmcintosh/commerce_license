@@ -578,6 +578,10 @@ function commerce_license_synchronization_queue_process($item) {
   if (!$synchronize) {
     $license->wrapper->sync_status = COMMERCE_LICENSE_SYNC_FAILED;
     $license->wrapper->save();
+    // Fire a rules event and a hook, allowing developers to respond
+    // to a failed synchronization.
+    rules_invoke_all('commerce_license_synchronize_failed', $license);
+
     return array(
       'status' => ADVANCEDQUEUE_STATUS_FAILURE,
       'result' => 'Synchronization failed for license #' . $license->license_id,
@@ -591,7 +595,7 @@ function commerce_license_synchronization_queue_process($item) {
   $license->wrapper->sync_status = COMMERCE_LICENSE_SYNCED;
   $license->wrapper->save();
   // Fire a rules event and a hook, allowing developers to respond
-  // to a license synchronization (sending a notification mail, for instance).
+  // to a successful synchronization (e.g. sending a notification mail).
   rules_invoke_all('commerce_license_synchronize', $license);
 
   return array(
