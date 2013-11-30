@@ -57,33 +57,6 @@ function commerce_license_role_commerce_license_types_list_alter(&$types, $produ
 }
 
 /**
- * Implements hook_field_widget_form_alter().
- */
-function commerce_license_role_field_widget_form_alter(&$element, &$form_state, $context) {
-  if ($context['field']['field_name'] == 'commerce_license_role') {
-    // Build the path to the commerce_license_type widget, taking into account
-    // all field parents. This ensures that #states work for embedded forms
-    // such as the IEF one.
-    $parents = $element['#field_parents'];
-    $parents[] = 'commerce_license_type';
-    $parents[] = $element['#language'];
-    $name = '';
-    foreach ($parents as $name_part) {
-      if (empty($name)) {
-        $name = $name_part;
-      }
-      else {
-        $name .= '[' . $name_part . ']';
-      }
-    }
-
-    $element['#states']['visible'] = array(
-      ':input[name="' . $name . '"]' => array('value' => 'role'),
-    );
-  }
-}
-
-/**
  * Implements hook_flush_caches().
  *
  * Ensures that products have the required commerce_license_role field.
