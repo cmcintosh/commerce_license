@@ -828,6 +828,24 @@ function commerce_license_types_allowed_values($field, $instance, $entity_type, 
 }
 
 /**
+ * Implements hook_field_widget_form_alter().
+ */
+function commerce_license_field_widget_form_alter(&$element, &$form_state, $context) {
+  $field = $context['field'];
+  $instance = $context['instance'];
+  // Hide the license type field if there's only one possible option.
+  if ($field['field_name'] == 'commerce_license_type') {
+    $entity_type = $element['#entity_type'];
+    $entity = $element['#entity'];
+    $allowed_values = commerce_license_types_allowed_values($field, $instance, $entity_type, $entity);
+    if (count($allowed_values) == 1) {
+      $element['#default_value'] = key($allowed_values);
+      $element['#type'] = 'value';
+    }
+  }
+}
+
+/**
  * Implements hook_field_widget_info().
  */
 function commerce_license_field_widget_info() {
