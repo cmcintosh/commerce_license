@@ -25,6 +25,10 @@ function commerce_license_settings_form($form, &$form_state) {
       $line_item_types[$type] = $line_item_type['name'];
     }
   }
+  // The recurring line item type is special, don't show it here.
+  if (module_exists('commerce_license_billing')) {
+    unset($line_item_types['recurring']);
+  }
   $form['commerce_license_line_item_types'] = array(
     '#title' => t('Line item types'),
     '#type' => 'checkboxes',
