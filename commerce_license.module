@@ -86,7 +86,7 @@ function commerce_license_menu() {
  */
 function commerce_license_ctools_plugin_type() {
   return array(
-    'type' => array(
+    'license_type' => array(
       'use hooks' => FALSE,
       'classes' => array('class'),
     ),
@@ -107,7 +107,7 @@ function commerce_license_ctools_plugin_directory($module, $plugin) {
  */
 function commerce_license_get_type_plugins() {
   ctools_include('plugins');
-  $plugins = ctools_get_plugins('commerce_license', 'type');
+  $plugins = ctools_get_plugins('commerce_license', 'license_type');
   foreach ($plugins as $key => $plugin) {
     if (!class_exists($plugin['class'])) {
       // Invalid class specified.
@@ -137,7 +137,7 @@ function commerce_license_entity_info() {
       'revision table' => 'commerce_license_revision',
       'module' => 'commerce_license',
       'bundle plugin' => array(
-        'plugin type' => 'type',
+        'plugin type' => 'license_type',
         // The name of the class to use when loading an invalid bundle.
         'broken class' => 'CommerceLicenseBroken',
       ),
