@@ -3,7 +3,7 @@ Provides a framework for selling access to local or remote resources.
 Features
 --------
 - Any kind of local or remote resource be licensed.
-  Licenses are entities. Licensed types are implemented as classes
+  Licenses are entities. License types are implemented as classes
   (thanks to Entity Bundle Plugin) and contain all relevant logic.
 - A license can be configurable, allowing its fields to be edited straight on
   the add to cart form (through Inline Entity Form), or through a checkout pane.
@@ -14,6 +14,11 @@ Features
   advanced queue processes the sync.
 - Licenses can be time limited, and are automatically expired (by cron) once
   that time passes.
-- An example module demonstrates the API for both local and remote licenses.
+
+Submodules
+----------
+- commerce_license_example: demonstrates the API for both local and remote licenses.
+- commerce_license_role: allows roles to be licensed. The customer receives the role
+  referenced by the purchased license product. Changing $license->product_id (from "Basic Membership" to "Premium Membership", for instance) changes the owner's role.
 
 See https://drupal.org/node/2039687 for information on getting started.
