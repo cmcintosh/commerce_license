@@ -818,7 +818,9 @@ function commerce_license_types_allowed_values($field, $instance, $entity_type, 
   $types = &drupal_static(__FUNCTION__, array());
   if (empty($types)) {
     foreach (commerce_license_get_type_plugins() as $plugin_name => $plugin_info) {
-      $types[$plugin_name] = $plugin_info['title'];
+      if (empty($plugin_info['no ui'])) {
+        $types[$plugin_name] = $plugin_info['title'];
+      }
     }
 
     // Allow the list to be altered.
