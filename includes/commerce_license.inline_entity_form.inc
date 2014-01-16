@@ -89,7 +89,6 @@ class CommerceLicenseInlineEntityFormController extends EntityInlineEntityFormCo
     // Only submit the form if the license is configurable.
     if ($license->isConfigurable()) {
       $license->formSubmit($entity_form, $form_state);
-      $this->cleanupFieldFormState($entity_form, $form_state);
     }
   }
 }
