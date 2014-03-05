@@ -13,6 +13,7 @@ dependencies[] = entity_bundle_plugin
 dependencies[] = entityreference
 dependencies[] = list
 dependencies[] = number
+dependencies[] = views_bulk_operations
 
 files[] = commerce_license.info.inc
 files[] = includes/commerce_license.controller.inc
