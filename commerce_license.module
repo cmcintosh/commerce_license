@@ -639,9 +639,7 @@ function commerce_license_form_commerce_cart_add_to_cart_form_alter(&$form, &$fo
   if (in_array($form_state['line_item']->type, commerce_license_line_item_types())) {
     // Check whether the product is licensable, since the line item might be
     // able to hold both licensable and non-licensable products.
-    $product_types = commerce_license_product_types();
-    $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $form_state['line_item']);
-    if (in_array($line_item_wrapper->commerce_product->type->value(), $product_types)) {
+    if (in_array($form_state['default_product']->type, commerce_license_product_types())) {
       $form_state['line_item']->data['context']['add_to_cart_combine'] = FALSE;
     }
   }
@@ -897,15 +895,14 @@ function commerce_license_field_widget_form(&$form, &$form_state, $field, $insta
   if ($instance['widget']['type'] == 'inline_entity_form_license') {
     // Using #title_display = invisible doesn't work here.
     $element['#title'] = '';
-    if (!empty($form_state['line_item'])) {
-      $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $form_state['line_item']);
-      $product = $line_item_wrapper->commerce_product->value();
-      if (empty($product->commerce_license_type)) {
+    if (!empty($form_state['default_product'])) {
+      $product_wrapper = entity_metadata_wrapper('commerce_product', $form['default_product']);
+      if (empty($form['default_product']->commerce_license_type)) {
         // This product is not licensable.
         return array();
       }
-
-      $license_type = $line_item_wrapper->commerce_product->commerce_license_type->value();
+      $product_wrapper = entity_metadata_wrapper('commerce_product', $form['default_product']);
+      $license_type = $product_wrapper->commerce_license_type->value();
       // Inject the desired bundle.
       $field['settings']['handler_settings']['target_bundles'] = array($license_type);
     }
