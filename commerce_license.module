@@ -984,8 +984,8 @@ function commerce_license_field_widget_form(&$form, &$form_state, $field, $insta
       ),
       '#attributes' => array('class' => array('commerce-license-duration container-inline')),
       '#states' => array(
-        'visible' => array(
-          ':input[name="' . $mode_path . '"]' => array('value' => 'limited'),
+        'invisible' => array(
+          ':input[name="' . $mode_path . '"]' => array('value' => 'unlimited'),
         ),
       ),
     );
