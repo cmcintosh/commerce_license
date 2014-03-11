@@ -896,12 +896,12 @@ function commerce_license_field_widget_form(&$form, &$form_state, $field, $insta
     // Using #title_display = invisible doesn't work here.
     $element['#title'] = '';
     if (!empty($form_state['default_product'])) {
-      $product_wrapper = entity_metadata_wrapper('commerce_product', $form['default_product']);
-      if (empty($form['default_product']->commerce_license_type)) {
+      $product_wrapper = entity_metadata_wrapper('commerce_product', $form_state['default_product']);
+      if (empty($form_state['default_product']->commerce_license_type)) {
         // This product is not licensable.
         return array();
       }
-      $product_wrapper = entity_metadata_wrapper('commerce_product', $form['default_product']);
+      $product_wrapper = entity_metadata_wrapper('commerce_product', $form_state['default_product']);
       $license_type = $product_wrapper->commerce_license_type->value();
       // Inject the desired bundle.
       $field['settings']['handler_settings']['target_bundles'] = array($license_type);
