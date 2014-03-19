@@ -223,7 +223,16 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
    * Implements EntityBundlePluginProvideFieldsInterface::fields().
    */
   static function fields() {
-    return array();
+    $fields = array();
+    $fields['num_renewals']['field'] = array(
+      'type' => 'number_integer',
+      'cardinality' => 1,
+    );
+    $fields['num_renewals']['instance'] = array(
+      'label' => t('Number of renewals'),
+    );
+
+    return $fields;
   }
 
   /**
@@ -243,6 +252,8 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
    */
   public function form(&$form, &$form_state) {
     field_attach_form('commerce_license', $this, $form, $form_state, LANGUAGE_NONE);
+    // The num_renewals field should not be editable by the customer.
+    $form['num_renewals']['#access'] = FALSE;
   }
 
   /**
@@ -268,6 +279,8 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
    * Implements CommerceLicenseInterface::renew().
    */
   public function renew($expires) {
+    $num_renewals = (int) $this->wrapper->num_renewals->value();
+    $this->wrapper->num_renewals = $num_renewals + 1;
     $this->expires = $expires;
     $this->save();
   }
@@ -284,9 +297,12 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
         $granted = TRUE;
       }
     }
-    elseif (empty($this->license_id) && $this->status == COMMERCE_LICENSE_ACTIVE) {
-      // The license was created with an active status.
-      $granted = TRUE;
+    else {
+      $this->wrapper->num_renewals = 0;
+      if ($this->status == COMMERCE_LICENSE_ACTIVE) {
+        // The license was created with an active status.
+        $granted = TRUE;
+      }
     }
 
     // The license was just activated, set the granted timestamp and calculate
