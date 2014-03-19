@@ -1103,3 +1103,84 @@ function commerce_license_duration_from_timestamp($timestamp) {
   // Return the value and the unit.
   return array($timestamp / $unit, $unit);
 }
+
+/**
+ * Implements hook_action_info().
+ */
+function commerce_license_action_info() {
+  return array(
+    'commerce_license_renew_action' => array(
+      'type' => 'commerce_license',
+      'label' => t('Renew license'),
+      'configurable' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Configuration form for commerce_license_renew_action.
+ */
+function commerce_license_renew_action_form($context) {
+  $default_value = 5;
+  $default_unit = 86400;
+  $description = t('Note: Months are 30 days long');
+
+  $form = array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'commerce_license') . '/theme/commerce-license.css',
+      ),
+    ),
+    '#attributes' => array(
+      'class' => array('commerce-license-duration-wrapper'),
+    ),
+  );
+  $form['duration'] = array(
+    '#type' => 'container',
+    'duration_value' => array(
+      '#type' => 'textfield',
+      '#title' => t('Renew the license for another:'),
+      '#size' => 5,
+      '#default_value' => $default_value,
+      '#element_validate' => array('element_validate_integer_positive'),
+    ),
+    'duration_unit' => array(
+      '#type' => 'select',
+      '#default_value' => $default_unit,
+      '#options' => commerce_license_duration_units(),
+    ),
+    'description' => array(
+      '#markup' => '<div class="description">' . $description . '</div>',
+    ),
+    '#attributes' => array('class' => array('commerce-license-duration container-inline')),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for the commerce license update expiration action form.
+ */
+function commerce_license_renew_action_submit($form, &$form_state){
+  $extension = $form_state['values']['duration_value'] * $form_state['values']['duration_unit'];
+  return array('extension' => $extension);
+}
+
+/**
+ * Renews the provided license.
+ */
+function commerce_license_renew_action($license, $context = array()) {
+  // Commerce License Billing handles renewals automatically. Don't allow
+  // the user to interfere with that.
+  if (module_exists('commerce_license_billing')) {
+    $product = $license->wrapper->product->value();
+    if (!empty($product->cl_billing_cycle_type)) {
+      $license_id = $license->license_id;
+      drupal_set_message("Can't renew license #$license_id, it is managed by Commerce License Billing.");
+      return;
+    }
+  }
+
+  $new_expiration = $license->expires + $context['extension'];
+  $license->renew($new_expiration);
+}

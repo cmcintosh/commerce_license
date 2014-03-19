@@ -126,6 +126,13 @@ function commerce_license_views_default_views() {
       'override_label' => 1,
       'label' => 'Delete license',
     ),
+    'action::views_bulk_operations_delete_revision' => array(
+      'selected' => 0,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
       'postpone_processing' => 0,
@@ -154,6 +161,13 @@ function commerce_license_views_default_views() {
       'settings' => array(
         'url' => '',
       ),
+    ),
+    'action::commerce_license_renew_action' => array(
+      'selected' => 1,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
@@ -198,6 +212,11 @@ function commerce_license_views_default_views() {
   $handler->display->display_options['fields']['granted']['table'] = 'commerce_license';
   $handler->display->display_options['fields']['granted']['field'] = 'granted';
   $handler->display->display_options['fields']['granted']['date_format'] = 'medium';
+  /* Field: Commerce License: Expires */
+  $handler->display->display_options['fields']['expires']['id'] = 'expires';
+  $handler->display->display_options['fields']['expires']['table'] = 'commerce_license';
+  $handler->display->display_options['fields']['expires']['field'] = 'expires';
+  $handler->display->display_options['fields']['expires']['date_format'] = 'medium';
   /* Filter criterion: User: Name */
   $handler->display->display_options['filters']['uid']['id'] = 'uid';
   $handler->display->display_options['filters']['uid']['table'] = 'users';
