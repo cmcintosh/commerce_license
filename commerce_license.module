@@ -610,6 +610,11 @@ function commerce_license_synchronization_queue_process($item) {
  * Prevents the changing of the license line item quantity on the cart form.
  */
 function commerce_license_form_views_form_commerce_cart_form_default_alter(&$form, &$form_state) {
+  if (empty($form['edit_quantity'])) {
+    // The quantity field is not present on the view.
+    return;
+  }
+
   $line_item_types = commerce_license_line_item_types();
   $product_types = commerce_license_product_types();
   foreach (element_children($form['edit_quantity']) as $key) {
