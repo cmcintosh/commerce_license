@@ -639,6 +639,7 @@ function commerce_license_form_views_form_commerce_cart_form_default_alter(&$for
  * Implements hook_form_FORM_ID_alter().
  *
  * Prevents the combining of license line items on the Add to Cart form.
+ * Prevents the changing of the quantity.
  */
 function commerce_license_form_commerce_cart_add_to_cart_form_alter(&$form, &$form_state) {
   if (in_array($form_state['line_item']->type, commerce_license_line_item_types())) {
@@ -646,6 +647,7 @@ function commerce_license_form_commerce_cart_add_to_cart_form_alter(&$form, &$fo
     // able to hold both licensable and non-licensable products.
     if (in_array($form_state['default_product']->type, commerce_license_product_types())) {
       $form_state['line_item']->data['context']['add_to_cart_combine'] = FALSE;
+      $form['quantity']['#access'] = FALSE;
     }
   }
 }
