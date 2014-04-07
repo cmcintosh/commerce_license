@@ -413,6 +413,59 @@ function commerce_license_commerce_order_update($order) {
 }
 
 /**
+ * Deletes any references to the given license.
+ *
+ * If the referencing entity is a line item, it is deleted.
+ * If an order is left without any line items, it is deleted.
+ */
+function commerce_license_delete_references($license) {
+  // Gather all fields that reference licenses.
+  $fields = array();
+  foreach (commerce_info_fields('entityreference') as $field_name => $field) {
+    if ($field['settings']['target_type'] == 'commerce_license') {
+      $fields[] = $field_name;
+    }
+  }
+
+  $order_ids = array();
+  foreach ($fields as $field_name) {
+    // Find all entities referencing the given license through this field.
+    $query = new EntityFieldQuery();
+    $query->fieldCondition($field_name, 'target_id', $license->license_id, '=');
+    $result = $query->execute();
+
+    if (!empty($result)) {
+      foreach ($result as $entity_type => $data) {
+        $entities = entity_load($entity_type, array_keys($data));
+        foreach ($entities as $entity_id => $entity) {
+          // Remove the reference from the field.
+          commerce_entity_reference_delete($entity, $field_name, 'target_id', $license->license_id);
+
+          // If the referencing entity is a line item, delete it.
+          // It shouldn't exist without its license.
+          if ($entity_type == 'commerce_line_item' && empty($entity->{$field_name})) {
+            entity_delete('commerce_line_item', $entity_id);
+            // The parent order needs to be examined later and deleted if empty.
+            $order_ids[] = $entity->order_id;
+          }
+          else {
+            entity_save($entity_type, $entity);
+          }
+        }
+      }
+    }
+  }
+
+  // Delete all orders that don't have any line items anymore.
+  foreach (array_unique($order_ids) as $order_id) {
+    $order = commerce_order_load($order_id);
+    if (empty($order->commerce_line_items)) {
+      commerce_order_delete($order_id);
+    }
+  }
+}
+
+/**
  * Activates all licenses of the provided order.
  *
  * @param $order

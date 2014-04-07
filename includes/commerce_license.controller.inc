@@ -41,4 +41,33 @@ class CommerceLicenseEntityController extends EntityBundlePluginEntityController
 
     parent::saveRevision($entity);
   }
+
+  /**
+   * Overrides EntityBundlePluginEntityController::delete().
+   */
+  public function delete($ids, DatabaseTransaction $transaction = NULL) {
+    $entities = $ids ? $this->load($ids) : FALSE;
+    if (!$entities) {
+      // Do nothing, in case invalid or no ids have been passed.
+      return;
+    }
+
+    try {
+      parent::delete($ids, $transaction);
+
+      // Try to delete references to the given licenses.
+      // Do this after deleting the entities in question in order to give
+      // hook_entity_delete() implementations a chance to do their own thing
+      // (for example, deleting both the reference AND the referencing entity).
+      foreach ($entities as $entity) {
+        commerce_license_delete_references($entity);
+      }
+    }
+    catch (Exception $e) {
+      if (isset($transaction)) {
+        $transaction->rollback();
+      }
+      throw $e;
+    }
+  }
 }
