@@ -456,9 +456,12 @@ function commerce_license_delete_references($license) {
     }
   }
 
-  // Delete all orders that don't have any line items anymore.
-  foreach (array_unique($order_ids) as $order_id) {
-    $order = commerce_order_load($order_id);
+  // The order in the static cache might not look the same as the one loaded
+  // from the database, so the entity_load resets the static cache.
+  $order_ids = array_unique($order_ids);
+  $orders = entity_load('commerce_order', $order_ids, array(), TRUE);
+  foreach ($orders as $order) {
+    // Delete all orders that don't have any line items anymore.
     if (empty($order->commerce_line_items)) {
       commerce_order_delete($order_id);
     }
