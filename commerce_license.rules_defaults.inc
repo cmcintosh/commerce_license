@@ -17,6 +17,8 @@ function commerce_license_default_rules_configuration() {
   $rule->label = t('Activates licenses of a free order');
   $rule->tags = array('Commerce License');
   $rule->active = TRUE;
+  // Run after the rules that modify the order owner.
+  $rule->weight = 9;
 
   $rule
     ->event('commerce_checkout_complete')
@@ -34,6 +36,8 @@ function commerce_license_default_rules_configuration() {
   $rule->label = t('Activates licenses of an order');
   $rule->tags = array('Commerce License');
   $rule->active = TRUE;
+  // Run after the rules that modify the order owner.
+  $rule->weight = 9;
 
   $rule
     ->event('commerce_payment_order_paid_in_full')
