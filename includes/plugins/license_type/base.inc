@@ -405,6 +405,9 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
         $message = 'Your license has been successfully created: <br />';
         $message .= $this->accessDetails();
         break;
+      case COMMERCE_LICENSE_SYNC_FAILED_RETRY:
+        $message = t('Your license has been queued for processing.');
+        break;
       case COMMERCE_LICENSE_SYNC_FAILED:
         $message = t('Oops... We were unable to generate your credentials.');
         break;
@@ -421,7 +424,16 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
     $original_sync_status = NULL;
     if (!empty($this->license_id)) {
       $this->original = entity_load_unchanged('commerce_license', $this->license_id);
+
       $original_sync_status = $this->original->wrapper->sync_status->value();
+      $sync_status = $this->wrapper->sync_status->value();
+      $sync_status_changed = ($original_sync_status != $sync_status);
+      $synced = ($sync_status == COMMERCE_LICENSE_SYNCED);
+      $pending = ($this->status == COMMERCE_LICENSE_PENDING);
+      // A pending license was just synchronized, update its status.
+      if ($pending && $sync_status_changed && $synced) {
+        $this->status = COMMERCE_LICENSE_ACTIVE;
+      }
     }
 
     // Perform the save. This allows a presave / insert / update hook to

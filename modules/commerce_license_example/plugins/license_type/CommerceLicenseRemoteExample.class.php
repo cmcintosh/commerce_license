@@ -66,6 +66,10 @@ class CommerceLicenseRemoteExample extends CommerceLicenseRemoteBase  {
       // The license was just revoked. Do something.
     }
 
-    return TRUE;
+    // Alternatively, set COMMERCE_LICENSE_SYNC_FAILED if the sync failed,
+    // or COMMERCE_LICENSE_SYNC_FAILED_RETRY if the sync failed and should
+    // be retried.
+    $this->wrapper->sync_status = COMMERCE_LICENSE_SYNCED;
+    $this->save();
   }
 }

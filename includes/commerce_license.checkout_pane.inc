@@ -142,7 +142,7 @@ function commerce_license_complete_checkout_ajax_callback($license) {
   // Stop the refresh if synchronization has ended (succeeded, failed).
   $refresh = TRUE;
   $sync_status = $license->wrapper->sync_status->value();
-  if (in_array($sync_status, array(COMMERCE_LICENSE_SYNCED, COMMERCE_LICENSE_SYNC_FAILED))) {
+  if ($sync_status != COMMERCE_LICENSE_NEEDS_SYNC) {
     unset($_SESSION[$session_key]);
     $refresh = FALSE;
   }
