@@ -714,7 +714,9 @@ function commerce_license_form_views_form_commerce_cart_form_default_alter(&$for
  * Prevents the changing of the quantity.
  */
 function commerce_license_form_commerce_cart_add_to_cart_form_alter(&$form, &$form_state) {
-  if (in_array($form_state['line_item']->type, commerce_license_line_item_types())) {
+  $licensable_line_item_type = in_array($form_state['line_item']->type, commerce_license_line_item_types());
+  $has_enabled_products = isset($form_state['default_product']);
+  if ($licensable_line_item_type && $has_enabled_products) {
     // Check whether the product is licensable, since the line item might be
     // able to hold both licensable and non-licensable products.
     if (in_array($form_state['default_product']->type, commerce_license_product_types())) {
