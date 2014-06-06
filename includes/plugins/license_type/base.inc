@@ -100,6 +100,26 @@ interface CommerceLicenseInterface extends EntityBundlePluginProvideFieldsInterf
   public function checkoutCompletionMessage();
 
   /**
+   * Activates the license.
+   */
+  public function activate();
+
+  /**
+   * Expires the license.
+   */
+  public function expire();
+
+  /**
+   * Suspends the license.
+   */
+  public function suspend();
+
+  /**
+   * Revokes the license.
+   */
+  public function revoke();
+
+  /**
    * Renews the license.
    *
    * @param $expires
@@ -276,6 +296,38 @@ abstract class CommerceLicenseBase extends Entity implements CommerceLicenseInte
   public function checkoutCompletionMessage() {}
 
   /**
+   * Implements CommerceLicenseInterface::activate().
+   */
+  public function activate() {
+    $this->status = COMMERCE_LICENSE_ACTIVE;
+    $this->save();
+  }
+
+  /**
+   * Implements CommerceLicenseInterface::expire().
+   */
+  public function expire() {
+    $this->status = COMMERCE_LICENSE_EXPIRED;
+    $this->save();
+  }
+
+  /**
+   * Implements CommerceLicenseInterface::suspend().
+   */
+  public function suspend() {
+    $this->status = COMMERCE_LICENSE_SUSPENDED;
+    $this->save();
+  }
+
+  /**
+   * Implements CommerceLicenseInterface::revoke().
+   */
+  public function revoke() {
+    $this->status = COMMERCE_LICENSE_REVOKED;
+    $this->save();
+  }
+
+  /**
    * Implements CommerceLicenseInterface::renew().
    */
   public function renew($expires) {
@@ -414,6 +466,43 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
     }
 
     return $message;
+  }
+
+  /**
+   * Overrides CommerceLicenseBase::activate().
+   */
+  public function activate() {
+    // Synchronizable licenses are actived after the initial synchronization.
+    $this->wrapper->status = COMMERCE_LICENSE_PENDING;
+    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    $this->save();
+  }
+
+  /**
+   * Overrides CommerceLicenseBase::expire().
+   */
+  public function expire() {
+    $this->wrapper->status = COMMERCE_LICENSE_EXPIRED;
+    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    $this->save();
+  }
+
+  /**
+   * Overrides CommerceLicenseBase::suspend().
+   */
+  public function suspend() {
+    $this->wrapper->status = COMMERCE_LICENSE_SUSPENDED;
+    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    $this->save();
+  }
+
+  /**
+   * Overrides CommerceLicenseBase::revoke().
+   */
+  public function revoke() {
+    $this->wrapper->status = COMMERCE_LICENSE_REVOKED;
+    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    $this->save();
   }
 
   /**

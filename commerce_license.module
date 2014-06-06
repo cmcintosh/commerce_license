@@ -400,8 +400,7 @@ function commerce_license_commerce_order_update($order) {
   // The order was canceled, revoke all of its licenses.
   if ($order->status != $order->original->status && $order->status == 'canceled') {
     foreach ($licenses as $license) {
-      $license->status = COMMERCE_LICENSE_REVOKED;
-      entity_save('commerce_license', $license);
+      $license->revoke();
     }
   }
   // Make sure the license is assigned to the correct user.
@@ -478,16 +477,7 @@ function commerce_license_delete_references($license) {
 function commerce_license_activate_order_licenses($order) {
   $licenses = commerce_license_get_order_licenses($order);
   foreach ($licenses as $license) {
-    if ($license instanceof CommerceLicenseSynchronizableInterface) {
-      // Synchronizable licenses are actived after they have been synchronized.
-      $license->wrapper->status = COMMERCE_LICENSE_PENDING;
-      $license->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
-      $license->save();
-    }
-    else {
-      $license->status = COMMERCE_LICENSE_ACTIVE;
-      $license->save();
-    }
+    $license->activate();
   }
 }
 
@@ -604,12 +594,7 @@ function commerce_license_expiration_queue_process($item) {
 
   $license = entity_load_single('commerce_license', $data['license_id']);
   if ($license) {
-    $license->wrapper->status = COMMERCE_LICENSE_EXPIRED;
-    // If the license is synchronizable, queue it for synchronization.
-    if ($license instanceof CommerceLicenseSynchronizableInterface) {
-      $license->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
-    }
-    $license->save();
+    $license->expire();
   }
 
   if (module_exists('advancedqueue')) {
