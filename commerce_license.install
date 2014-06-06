@@ -160,7 +160,7 @@ function commerce_license_schema() {
 function commerce_license_uninstall() {
   // Delete product and line item fields and their instances.
   field_delete_field('commerce_license_type');
-  field_delete_field('commerce_license_expiration');
+  field_delete_field('commerce_license_duration');
   field_delete_field('commerce_license');
 
   // Delete variable settings.
