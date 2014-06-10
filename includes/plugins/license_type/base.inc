@@ -471,37 +471,48 @@ abstract class CommerceLicenseRemoteBase extends CommerceLicenseBase implements 
   /**
    * Overrides CommerceLicenseBase::activate().
    */
-  public function activate() {
-    // Synchronizable licenses are actived after the initial synchronization.
-    $this->wrapper->status = COMMERCE_LICENSE_PENDING;
-    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+  public function activate($sync = TRUE) {
+    if ($sync) {
+      // The license will be activated after the initial synchronization.
+      $this->wrapper->status = COMMERCE_LICENSE_PENDING;
+      $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    }
+    else {
+      $this->wrapper->status = COMMERCE_LICENSE_ACTIVE;
+    }
     $this->save();
   }
 
   /**
    * Overrides CommerceLicenseBase::expire().
    */
-  public function expire() {
+  public function expire($sync = TRUE) {
+    if ($sync) {
+      $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    }
     $this->wrapper->status = COMMERCE_LICENSE_EXPIRED;
-    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
     $this->save();
   }
 
   /**
    * Overrides CommerceLicenseBase::suspend().
    */
-  public function suspend() {
+  public function suspend($sync = TRUE) {
+    if ($sync) {
+      $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    }
     $this->wrapper->status = COMMERCE_LICENSE_SUSPENDED;
-    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
     $this->save();
   }
 
   /**
    * Overrides CommerceLicenseBase::revoke().
    */
-  public function revoke() {
+  public function revoke($sync = TRUE) {
+    if ($sync) {
+      $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
+    }
     $this->wrapper->status = COMMERCE_LICENSE_REVOKED;
-    $this->wrapper->sync_status = COMMERCE_LICENSE_NEEDS_SYNC;
     $this->save();
   }
 
