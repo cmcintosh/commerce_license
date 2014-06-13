@@ -65,6 +65,7 @@ class CommerceLicenseMetadataController extends EntityDefaultMetadataController 
       'type' => 'date',
       'label' => t('Expires'),
       'description' => t('The date when the license expires. 0 for never.'),
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'expires',
     );
     // entity_token uses this to provide [commerce_license:access-details].
