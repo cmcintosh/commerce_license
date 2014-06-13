@@ -1183,12 +1183,48 @@ function commerce_license_duration_from_timestamp($timestamp) {
  */
 function commerce_license_action_info() {
   return array(
+    'commerce_license_activate_action' => array(
+      'type' => 'commerce_license',
+      'label' => t('Activate license'),
+      'configurable' => FALSE,
+    ),
+    'commerce_license_suspend_action' => array(
+      'type' => 'commerce_license',
+      'label' => t('Suspend license'),
+      'configurable' => FALSE,
+    ),
+    'commerce_license_revoke_action' => array(
+      'type' => 'commerce_license',
+      'label' => t('Revoke license'),
+      'configurable' => FALSE,
+    ),
     'commerce_license_renew_action' => array(
       'type' => 'commerce_license',
       'label' => t('Renew license'),
       'configurable' => TRUE,
     ),
   );
+}
+
+/**
+ * Activates the provided license.
+ */
+function commerce_license_activate_action($license, $context = array()) {
+  $license->activate();
+}
+
+/**
+ * Suspends the provided license.
+ */
+function commerce_license_suspend_action($license, $context = array()) {
+  $license->suspend();
+}
+
+/**
+ * Revokes the provided license.
+ */
+function commerce_license_revoke_action($license, $context = array()) {
+  $license->revoke();
 }
 
 /**

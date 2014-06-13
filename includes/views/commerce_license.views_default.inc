@@ -119,6 +119,13 @@ function commerce_license_views_default_views() {
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['force_single'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['entity_load_capacity'] = '10';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_operations'] = array(
+    'action::commerce_license_activate_action' => array(
+      'selected' => 1,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 1,
       'postpone_processing' => 0,
@@ -141,15 +148,15 @@ function commerce_license_views_default_views() {
       'label' => '',
     ),
     'action::views_bulk_operations_modify_action' => array(
-      'selected' => 1,
+      'selected' => 0,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
-      'override_label' => 1,
-      'label' => 'Change status',
+      'override_label' => 0,
+      'label' => '',
       'settings' => array(
         'show_all_tokens' => 1,
         'display_values' => array(
-          'status' => 'status',
+          '_all_' => '_all_',
         ),
       ),
     ),
@@ -169,8 +176,22 @@ function commerce_license_views_default_views() {
       'override_label' => 0,
       'label' => '',
     ),
+    'action::commerce_license_revoke_action' => array(
+      'selected' => 1,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
     'action::system_send_email_action' => array(
       'selected' => 0,
+      'postpone_processing' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::commerce_license_suspend_action' => array(
+      'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
