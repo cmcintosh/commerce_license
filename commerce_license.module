@@ -634,8 +634,8 @@ function commerce_license_synchronization_queue_process($item) {
   // sync_status inside synchronize(), it was enough to return a boolean.
   // Handle compatibility with license types that still do that.
   if ($sync_status == COMMERCE_LICENSE_NEEDS_SYNC) {
-    $new_status = $result ? COMMERCE_LICENSE_SYNCED : COMMERCE_LICENSE_SYNC_FAILED;
-    $license->wrapper->sync_status = $new_status;
+    $sync_status = $result ? COMMERCE_LICENSE_SYNCED : COMMERCE_LICENSE_SYNC_FAILED;
+    $license->wrapper->sync_status = $sync_status;
     $license->save();
   }
 
