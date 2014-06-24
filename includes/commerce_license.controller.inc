@@ -17,6 +17,10 @@ class CommerceLicenseEntityController extends EntityBundlePluginEntityController
       $entity->default_revision = TRUE;
     }
     parent::save($entity, $transaction);
+
+    // Clean up revision keys to guard against #2291623.
+    unset($entity->revision);
+    unset($entity->default_revision);
   }
 
   /**
