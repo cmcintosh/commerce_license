@@ -185,7 +185,7 @@ function commerce_license_checkout_competion_message($license, $refresh = FALSE)
   // Add data attributes for the refresh process.
   if ($refresh) {
     $element['#attributes'] += array(
-      'data-refresh-url' => base_path() . 'ajax/commerce_license/' . $license->license_id,
+      'data-refresh-url' => url('ajax/commerce_license/' . $license->license_id, array('absolute' => TRUE)),
       'data-refresh-rate' => variable_get('commerce_license_refresh_rate', 2),
     );
   }
