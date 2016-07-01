@@ -208,6 +208,10 @@ function commerce_license_permission() {
       'title' => t('Administer licenses'),
       'restrict access' => TRUE,
     ),
+    'view all licenses' => array(
+      'title' => t('View all licenses'),
+      'restrict access' => TRUE,
+    ),
     'view own licenses' => array(
       'title' => t('View own licenses'),
     ),
@@ -241,6 +245,10 @@ function commerce_license_access($op, $license = NULL, $account = NULL) {
     // If there's no user attached, the license is still in checkout, so
     // allow it to be viewed freely.
     if ($license->uid == 0) {
+      return TRUE;
+    }
+    // If the user has the "view all licenses" permission, they pass.
+    if (user_access('view all licenses', $account)) {
       return TRUE;
     }
     return (($license->uid == $account->uid) && user_access('view own licenses', $account));
@@ -380,10 +388,18 @@ function commerce_license_commerce_line_item_presave($line_item) {
       $uid = $order->uid;
     }
 
-    $type = $line_item_wrapper->commerce_product->commerce_license_type->value();
-    $license = entity_create('commerce_license', array('type' => $type));
-    $license->product_id = $line_item_wrapper->commerce_product->product_id->value();
-    $license->uid = $uid;
+    // Ship some initial values to the entity controller. We pass in the
+    // responsible order and line item here for context, because the line item
+    // doesn't have its own reference to the license until after the license is
+    // created. These properties (order and line_item) are ultimately not saved.
+    $values = array(
+      'type' => $line_item_wrapper->commerce_product->commerce_license_type->value(),
+      'uid' => $uid,
+      'product_id' => $line_item_wrapper->commerce_product->product_id->value(),
+      'line_item' => $line_item_wrapper->value(),
+      'order' => $line_item_wrapper->order->value(),
+    );
+    $license = entity_create('commerce_license', $values);
     $license->save();
     $line_item_wrapper->commerce_license = $license;
   }
