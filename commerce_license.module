@@ -322,48 +322,6 @@ function commerce_license_line_item_types() {
 }
 
 /**
- * Returns an active license for the given product if it exists.
- *
- * @param $product_id
- *   The product id.
- * @param $uid
- *   The UID to check for. If not given, the current user is used instead.
- *
- * @return
- *   The loaded active license entity if it exists, FALSE otherwise.
- */
-function commerce_license_get_active_license($product_id, $uid = NULL)  {
-  global $user;
-
-  if (!$uid) {
-    $uid = $user->uid;
-  }
-
-  $results = &drupal_static(__FUNCTION__, array());
-  if (empty($results[$uid]) || empty($results[$uid][$product_id])) {
-    $query = new EntityFieldQuery;
-    $query
-      ->entityCondition('entity_type', 'commerce_license')
-      ->propertyCondition('status', COMMERCE_LICENSE_ACTIVE)
-      ->propertyCondition('product_id', $product_id)
-      ->propertyCondition('uid', $uid)
-      ->propertyCondition('expires', commerce_license_get_time(), '>')
-      ->propertyOrderBy('expires', 'DESC')
-      ->range(0, 1);
-    $query_results = $query->execute();
-
-    if (isset($query_results['commerce_license'])) {
-      $results[$uid][$product_id] = entity_load_single('commerce_license', key($query_results['commerce_license']));
-    }
-    else {
-      $results[$uid][$product_id] = FALSE;
-    }
-  }
-
-  return $results[$uid][$product_id];
-}
-
-/**
  * Checks whether the user has an active license for the given product.
  *
  * @param $product
@@ -535,37 +493,15 @@ function commerce_license_delete_references($license) {
 }
 
 /**
- * Activate/renew all licenses of the provided order.
+ * Activates all licenses of the provided order.
  *
  * @param $order
  *   The order entity.
  */
 function commerce_license_activate_order_licenses($order) {
-  $wrapper = entity_metadata_wrapper('commerce_order', $order);
-
-  foreach ($wrapper->commerce_line_items as $line_item_wrapper) {
-    if (isset($line_item_wrapper->commerce_license)) {
-      if ($license = $line_item_wrapper->commerce_license->value()) {
-        // If there's already an active license for this product, use it and
-        // renew it.
-        if ($license->uid > 0 && $active_license = commerce_license_get_active_license($license->product_id, $license->uid)) {
-          // This shouldn't happen but this function may be called multiple
-          // times, we should probably prevent this to happen instead of
-          // doing this check.
-          if ($license->license_id != $active_license->license_id) {
-            $line_item_wrapper->commerce_license = $active_license;
-            $line_item_wrapper->save();
-            $duration = $license->wrapper->product->commerce_license_duration->value();
-            $active_license->renew($active_license->expires + $duration);
-            $license->delete();
-          }
-        }
-        else {
-          // Otherwise, just activate the license.
-          $license->activate();
-        }
-      }
-    }
+  $licenses = commerce_license_get_order_licenses($order);
+  foreach ($licenses as $license) {
+    $license->activate();
   }
 }
 
