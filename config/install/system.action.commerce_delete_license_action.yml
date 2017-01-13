@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_license
+id: commerce_publish_license
+label: 'Publish license'
+type: commerce_license
+plugin: commerce_publish_license
+configuration: {  }

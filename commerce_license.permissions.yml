@@ -1,0 +1,4 @@
+'administer commerce_license_type':
+  title: 'Administer license types'
+  description: 'Maintain the types of licenses available and the fields that are associated with those types.'
+  'restrict access': TRUE

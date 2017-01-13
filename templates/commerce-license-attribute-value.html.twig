@@ -1,0 +1,23 @@
+{#
+/**
+ * @file
+ *
+ * Default template for license attribute values.
+ *
+ * Available variables:
+ * - attributes: HTML attributes for the wrapper.
+ * - license_attribute_value: The rendered license attribute value fields.
+ *   Use 'license_attribute_value' to print them all, or print a subset such as
+ *   'license_attribute_value.name'. Use the following code to exclude the
+ *   printing of a given field:
+ *   @code
+ *   {{ license_attribute_value|without('name') }}
+ *   @endcode
+ * - license_attribute_value_entity: The license attribute value entity.
+ *
+ * @ingroup themeable
+ */
+#}
+<div{{ attributes }}>
+  {{- license_attribute_value -}}
+</div>

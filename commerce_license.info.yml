@@ -1,0 +1,9 @@
+name: Commerce License
+type: module
+description: 'Provides a framework for selling access to local or remote resources.'
+package: Commerce (contrib)
+core: 8.x
+configure: commerce_license.admin_commerce_license
+dependencies:
+  - commerce_product
+  - commerce_payment

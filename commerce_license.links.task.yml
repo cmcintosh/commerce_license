@@ -1,0 +1,24 @@
+entity.commerce_license.canonical:
+  route_name: entity.commerce_license.canonical
+  base_route: entity.commerce_license.canonical
+  title: 'View'
+
+entity.commerce_license.page_edit:
+  route_name: entity.commerce_license.edit_form
+  base_route: entity.commerce_license.canonical
+  title: Edit
+
+entity.commerce_license_attribute.edit_form:
+  route_name: entity.commerce_license_attribute.edit_form
+  base_route: entity.commerce_license_attribute.edit_form
+  title: 'Edit'
+
+entity.commerce_license_type.edit_form:
+  route_name: entity.commerce_license_type.edit_form
+  base_route: entity.commerce_license_type.edit_form
+  title: Edit
+
+entity.commerce_license_variation_type.edit_form:
+  route_name: entity.commerce_license_variation_type.edit_form
+  base_route: entity.commerce_license_variation_type.edit_form
+  title: Edit

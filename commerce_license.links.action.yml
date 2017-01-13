@@ -1,0 +1,23 @@
+entity.commerce_license.add_page:
+  route_name: entity.commerce_license.add_page
+  title: 'Add license'
+  appears_on:
+    - entity.commerce_license.collection
+
+entity.commerce_license_attribute.add_form:
+  route_name: entity.commerce_license_attribute.add_form
+  title: 'Add license attribute'
+  appears_on:
+    - entity.commerce_license_attribute.collection
+
+entity.commerce_license_type.add_form:
+  route_name: entity.commerce_license_type.add_form
+  title: 'Add license type'
+  appears_on:
+    - entity.commerce_license_type.collection
+
+entity.commerce_license_variation_type.add_form:
+  route_name: entity.commerce_license_variation_type.add_form
+  title: 'Add license variation type'
+  appears_on:
+    - entity.commerce_license_variation_type.collection

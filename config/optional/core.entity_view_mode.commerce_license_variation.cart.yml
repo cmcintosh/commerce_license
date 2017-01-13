@@ -1,0 +1,11 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - commerce_cart
+      - commerce_license
+id: commerce_license_variation.cart
+label: Cart
+targetEntityType: commerce_license_variation
+cache: true

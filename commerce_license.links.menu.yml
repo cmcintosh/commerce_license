@@ -1,0 +1,23 @@
+entity.commerce_license.collection:
+  title: 'Licenses'
+  route_name: 'entity.commerce_license.collection'
+  parent: 'commerce.admin_commerce'
+  description: 'Manage your licenses.'
+
+entity.commerce_license_attribute.collection:
+  title: 'License attributes'
+  route_name: 'entity.commerce_license_attribute.collection'
+  parent: 'commerce.admin_commerce'
+  description: 'Manage your license attributes.'
+
+entity.commerce_license_type.collection:
+  title: 'License types'
+  route_name: 'entity.commerce_license_type.collection'
+  parent: 'commerce.configuration'
+  description: 'Manage your license types.'
+
+entity.commerce_license_variation_type.collection:
+  title: 'License variation types'
+  route_name: 'entity.commerce_license_variation_type.collection'
+  parent: 'commerce.configuration'
+  description: 'Manage your license variation types.'

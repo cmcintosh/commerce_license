@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_license
+id: commerce_license.variations
+field_name: variations
+entity_type: commerce_license
+type: entity_reference
+settings:
+  target_type: commerce_license_variation
+module: core
+locked: true
+cardinality: -1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

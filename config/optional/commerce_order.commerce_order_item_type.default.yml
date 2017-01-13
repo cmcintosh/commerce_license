@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - commerce_license
+label: 'Default'
+id: default
+purchasableEntityType: commerce_license_variation
+orderType: default

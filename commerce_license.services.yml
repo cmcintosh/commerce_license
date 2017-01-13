@@ -1,0 +1,12 @@
+services:
+  commerce_license.attribute_field_manager:
+    class: Drupal\commerce_license\LicenseAttributeFieldManager
+    arguments: ['@entity_field.manager', '@entity_type.bundle.info', '@entity.query', '@cache.data']
+
+  commerce_license.lazy_builders:
+    class: Drupal\commerce_license\LicenseLazyBuilders
+    arguments: ['@entity_type.manager', '@entity.form_builder']
+
+  commerce_license.variation_field_renderer:
+    class: Drupal\commerce_license\LicenseVariationFieldRenderer
+    arguments: ['@entity_type.manager', '@entity_field.manager']

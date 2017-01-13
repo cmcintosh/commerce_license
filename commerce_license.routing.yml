@@ -1,0 +1,31 @@
+entity.commerce_license.collection:
+  path: '/admin/commerce/licenses'
+  defaults:
+    _entity_list: 'commerce_license'
+    _title: 'Licenses'
+  requirements:
+    _permission: 'administer commerce_license'
+
+entity.commerce_license_attribute.collection:
+  path: '/admin/commerce/license-attributes'
+  defaults:
+    _entity_list: 'commerce_license_attribute'
+    _title: 'License attributes'
+  requirements:
+    _permission: 'administer commerce_license_attribute'
+
+entity.commerce_license_type.collection:
+  path: '/admin/commerce/config/license-types'
+  defaults:
+    _entity_list: 'commerce_license_type'
+    _title: 'License types'
+  requirements:
+    _permission: 'administer commerce_license_type'
+
+entity.commerce_license_variation_type.collection:
+  path: '/admin/commerce/config/license-variation-types'
+  defaults:
+    _entity_list: 'commerce_license_variation_type'
+    _title: 'License variation types'
+  requirements:
+    _permission: 'administer commerce_license_type'

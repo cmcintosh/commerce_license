@@ -1,0 +1,22 @@
+{#
+/**
+ * @file
+ * Two column template for the license add/edit form.
+ *
+ * Available variables:
+ * - form: The form.
+ *
+ * @ingroup themeable
+ */
+#}
+<div class="layout-license-form clearfix">
+  <div class="layout-region layout-region-license-main">
+    {{ form|without('advanced', 'actions') }}
+  </div>
+  <div class="layout-region layout-region-license-secondary">
+    {{ form.advanced }}
+  </div>
+  <div class="layout-region layout-region-license-footer">
+    {{ form.actions }}
+  </div>
+</div>

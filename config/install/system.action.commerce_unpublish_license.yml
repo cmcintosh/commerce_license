@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_license
+id: commerce_unpublish_license
+label: 'Unpublish license'
+type: commerce_license
+plugin: commerce_unpublish_license
+configuration: {  }

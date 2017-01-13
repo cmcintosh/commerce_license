@@ -1,0 +1,24 @@
+{#
+/**
+ * @file
+ *
+ * Default template for license variations.
+ *
+ * Available variables:
+ * - attributes: HTML attributes for the wrapper.
+ * - license_variation: The rendered license variation fields.
+ *   Use 'license_variation' to print them all, or print a subset such as
+ *   'license_variation.title'. Use the following code to exclude the
+ *   printing of a given field:
+ *   @code
+ *   {{ license_variation|without('title') }}
+ *   @endcode
+ * - license_variation_entity: The license variation entity.
+ * - url: The license URL.
+ *
+ * @ingroup themeable
+ */
+#}
+<div{{ attributes }}>
+  {{- license_variation -}}
+</div>

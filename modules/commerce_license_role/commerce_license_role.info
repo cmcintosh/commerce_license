@@ -1,5 +1,0 @@
-name = Commerce License Role
-description = Provides a license type for selling roles.
-core = 7.x
-package = Commerce (contrib)
-dependencies[] = commerce_license

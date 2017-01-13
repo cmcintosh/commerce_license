@@ -1,0 +1,11 @@
+form:
+  version: VERSION
+  css:
+    theme:
+      css/license.form.css: {}
+
+rendered-attributes:
+  version: VERSION
+  css:
+    theme:
+      css/commerce_license.rendered-attributes.css: {}

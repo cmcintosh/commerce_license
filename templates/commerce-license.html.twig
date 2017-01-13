@@ -1,0 +1,24 @@
+{#
+/**
+ * @file
+ *
+ * Default license template.
+ *
+ * Available variables:
+ * - attributes: HTML attributes for the wrapper.
+ * - license: The rendered license fields.
+ *   Use 'license' to print them all, or print a subset such as
+ *   'license.title'. Use the following code to exclude the
+ *   printing of a given field:
+ *   @code
+ *   {{ license|without('title') }}
+ *   @endcode
+ * - license_entity: The license entity.
+ * - license_url: The license URL.
+ *
+ * @ingroup themeable
+ */
+#}
+<article{{ attributes }}>
+  {{- license|without('variation_attributes') -}}
+</article>

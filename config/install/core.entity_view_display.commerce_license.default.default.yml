@@ -1,0 +1,36 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_license.commerce_license_type.default
+    - field.field.commerce_license.default.body
+    - field.field.commerce_license.default.stores
+    - field.field.commerce_license.default.variations
+  module:
+    - commerce_license
+    - text
+    - user
+id: commerce_license.default.default
+targetEntityType: commerce_license
+bundle: default
+mode: default
+content:
+  body:
+    type: text_default
+    weight: 0
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+  variations:
+    type: commerce_add_to_cart
+    weight: 1
+    label: hidden
+    settings:
+      default_quantity: '1'
+      combine: true
+      show_quantity: false
+    third_party_settings: {  }
+hidden:
+  created: true
+  stores: true
+  uid: true
