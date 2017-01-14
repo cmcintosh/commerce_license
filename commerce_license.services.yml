@@ -1,4 +1,18 @@
 services:
+
+  plugin.manager.commerce_license_resource:
+    class: Drupal\commerce_license\PluginManager\LicenseResourceManager
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
+
+  plugin.manager.commerce_license_condition:
+    class: Drupal\commerce_license\PluginManager\LicenseConditionManager
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
+
+  commerce_license_subscriber:
+    class: '\Drupal\commerce_license\EventSubscriber\EventHandler'
+    tags:
+      - { name: 'event_subscriber' }
+
   commerce_license.attribute_field_manager:
     class: Drupal\commerce_license\LicenseAttributeFieldManager
     arguments: ['@entity_field.manager', '@entity_type.bundle.info', '@entity.query', '@cache.data']

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal/commerce_license/Entity;
+namespace Drupal\commerce_license\Entity;
 
 use Drupal\user\UserInterface;
 use Drupal\Core\Entity\ContentEntityBase;
@@ -10,66 +10,67 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 
 /**
-* Defines the license entity class
-*
-* @ContentEntityType(
-*   id = "commerce_license",
-*   label = @Translation('License'),
-*   label_singular = @Translation("license"),
-*   label_plural = @Translation("licenses"),
-*   label_count = @PluralTranslation(
-*    singular = "@count license",
-*    plural = "@count licenses",
-*  ),
-*  bundle_label = @Translation("License Type"),
-*  handlers = {
-*    "event" = "Drupal\commerce_license\Event\LicenseEvent",
-*    "storage" = "Drupal\commerce\CommerceContentEntityStorage",
-*    "access" = "Drupal\commerce_license\EntityAccessControlHandler",
-*    "permission_provider" = "Drupal\commerce_license\EntityPermissionProvider",
-*    "view_builder" = "Drupal\commerce_license\LicenseViewBuilder",
-*    "list_builder" = "Drupal\commerce_license\LicenseListBuilder",
-*    "views_data" = "Drupal\views\EntityViewsData",
-*    "form" = {
-*      "default" = "Drupal\commerce_license\Form\LicenseForm",
-*      "add" = "Drupal\commerce_license\Form\LicenseForm",
-*      "edit" = "Drupal\commerce_license\Form\LicenseForm",
-*      "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm",
-*    },
-*    "route_provider" = {
-*      "default" = "Drupal\Core\Entity\Routing\AdminHtmlRouteProvider",
-*      "delete-multiple" = "Drupal\entity\Routing\DeleteMultipleRouteProvider",
-*    },
-*    "translation" = "Drupal\commerce_license\LicenseTranslationHandler",
-*  },
-*  admin_permission = "administer commerce_license",
-*  permission_granularity = "bundle",
-*  fieldable = TRUE,
-*  translatable = TRUE,
-*  base_table = "commerce_license",
-*  data_table = "commerce_license_field_data",
-*  entity_keys = {
-*    "id" = "license_id",
-*    "bundle" = "type",
-*    "label" = "title",
-*    "langcode" = "langcode",
-*    "uuid" = "uuid",
-*    "status" = "status",
-*  },
-*  links = {
-*    "canonical" = "/license/{commerce_license}",
-*    "add-page" = "/license/add",
-*    "edit-form" = "/license/{commerce_license}/edit",
-*    "delete-form" = "/license/{commerce_license}/delete",
-*    "delete-multiple-form" = "/admin/commerce/licenses/delete",
-*    "collection" = "/admin/commerce/licenses"
-*  },
-*  bundle_entity_type = "commerce_license_type",
-*  field_ui_base_route = "entity.commerce_license_type.edit_form"
-* )
-*/
+ * Defines the license entity class.
+ *
+ * @ContentEntityType(
+ *   id = "commerce_license",
+ *   label = @Translation("License"),
+ *   label_singular = @Translation("license"),
+ *   label_plural = @Translation("licenses"),
+ *   label_count = @PluralTranslation(
+ *     singular = "@count license",
+ *     plural = "@count licenses",
+ *   ),
+ *   bundle_label = @Translation("License type"),
+ *   handlers = {
+ *     "event" = "Drupal\commerce_license\Event\LicenseEvent",
+ *     "storage" = "Drupal\commerce\CommerceContentEntityStorage",
+ *     "access" = "Drupal\commerce\EntityAccessControlHandler",
+ *     "permission_provider" = "Drupal\commerce\EntityPermissionProvider",
+ *     "view_builder" = "Drupal\commerce_license\LicenseViewBuilder",
+ *     "list_builder" = "Drupal\commerce_license\LicenseListBuilder",
+ *     "views_data" = "Drupal\views\EntityViewsData",
+ *     "form" = {
+ *       "default" = "Drupal\commerce_license\Form\LicenseForm",
+ *       "add" = "Drupal\commerce_license\Form\LicenseForm",
+ *       "edit" = "Drupal\commerce_license\Form\LicenseForm",
+ *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm"
+ *     },
+ *     "route_provider" = {
+ *       "default" = "Drupal\Core\Entity\Routing\AdminHtmlRouteProvider",
+ *       "delete-multiple" = "Drupal\entity\Routing\DeleteMultipleRouteProvider",
+ *     },
+ *     "translation" = "Drupal\commerce_license\LicenseTranslationHandler"
+ *   },
+ *   admin_permission = "administer commerce_license",
+ *   permission_granularity = "bundle",
+ *   fieldable = TRUE,
+ *   translatable = TRUE,
+ *   base_table = "commerce_license",
+ *   data_table = "commerce_license_field_data",
+ *   entity_keys = {
+ *     "id" = "license_id",
+ *     "bundle" = "type",
+ *     "label" = "title",
+ *     "langcode" = "langcode",
+ *     "uuid" = "uuid",
+ *     "status" = "status",
+ *   },
+ *   links = {
+ *     "canonical" = "/license/{commerce_license}",
+ *     "add-page" = "/license/add",
+ *     "add-form" = "/license/add/{commerce_license_type}",
+ *     "edit-form" = "/license/{commerce_license}/edit",
+ *     "delete-form" = "/license/{commerce_license}/delete",
+ *     "delete-multiple-form" = "/admin/commerce/licenses/delete",
+ *     "collection" = "/admin/commerce/licenses"
+ *   },
+ *   bundle_entity_type = "commerce_license_type",
+ *   field_ui_base_route = "entity.commerce_license_type.edit_form",
+ * )
+ */
 
-class License extends ContentEntity implements LicenseInterface {
+class License extends ContentEntityBase implements LicenseInterface {
 
   use EntityChangedTrait;
 
@@ -249,7 +250,7 @@ class License extends ContentEntity implements LicenseInterface {
   /**
    * Gets the index of the given variation.
    *
-   * @param \Drupal\commerce_product\Entity\ProductVariationInterface $variation
+   * @param \Drupal\commerce_license\Entity\LicenseVariationInterface $variation
    *   The variation.
    *
    * @return int|bool
@@ -298,11 +299,11 @@ class License extends ContentEntity implements LicenseInterface {
   public function postSave(EntityStorageInterface $storage, $update = TRUE) {
     parent::postSave($storage, $update);
 
-    // Ensure there's a back-reference on each product variation.
+    // Ensure there's a back-reference on each license variation.
     foreach ($this->variations as $item) {
       $variation = $item->entity;
-      if ($variation->product_id->isEmpty()) {
-        $variation->product_id = $this->id();
+      if ($variation->license_id->isEmpty()) {
+        $variation->license_id = $this->id();
         $variation->save();
       }
     }
@@ -312,7 +313,7 @@ class License extends ContentEntity implements LicenseInterface {
    * {@inheritdoc}
    */
   public static function postDelete(EntityStorageInterface $storage, array $entities) {
-    // Delete the product variations of a deleted product.
+    // Delete the license variations of a deleted license.
     $variations = [];
     foreach ($entities as $entity) {
       if (empty($entity->variations)) {

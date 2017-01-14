@@ -7,7 +7,7 @@ use Drupal\Core\Config\Entity\ConfigEntityInterface;
 /**
 * Defines the interface for license attributes.
 */
-interface ProductAttributeInterface extends ConfigEntityInterface {
+interface LicenseAttributeInterface extends ConfigEntityInterface {
 
   /**
    * Gets the attribute values.

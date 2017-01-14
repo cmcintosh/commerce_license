@@ -83,6 +83,8 @@ class LicenseForm extends ContentEntityForm {
       '#type' => 'hidden',
       '#default_value' => $license->getChangedTime(),
     ];
+    $author = $license->getOwner();
+    $author_display_name = ($author) ? $author->getDisplayName() : '';
 
     $last_saved = t('Not saved yet');
     if (!$license->isNew()) {
@@ -114,7 +116,7 @@ class LicenseForm extends ContentEntityForm {
         '#wrapper_attributes' => [
           'class' => ['author', 'container-inline'],
         ],
-        '#markup' => '<h4 class="label inline">' . $this->t('Author') . '</h4> ' . $license->getOwner()->getDisplayName(),
+        '#markup' => '<h4 class="label inline">' . $this->t('Author') . '</h4> ' . $author_display_name,
       ],
     ];
     $form['advanced'] = [

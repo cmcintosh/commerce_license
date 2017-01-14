@@ -1,0 +1,11 @@
+commerce_license.commerce_license_resource:
+  label: Commerce License Resource
+  provider: commerce_license
+  plugin_manager_service_id: plugin.manager.commerce_license_resource
+  plugin_definition_decorator_class: Drupal\plugin\PluginDefinition\ArrayPluginDefinitionDecorator
+
+commerce_license.commerce_license_condition:
+  label: Commerce License Condition
+  provider: commerce_license
+  plugin_manager_service_id: plugin.manager.commerce_license_condition
+  plugin_definition_decorator_class: Drupal\plugin\PluginDefinition\ArrayPluginDefinitionDecorator

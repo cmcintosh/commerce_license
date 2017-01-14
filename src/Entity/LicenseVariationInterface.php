@@ -18,7 +18,7 @@ interface LicenseVariationInterface extends PurchasableEntityInterface, EntityCh
    * @return LicenseInterface|null
    *   The product entity, or null.
    */
-  public function getProduct();
+  public function getLicense();
 
   /**
    * Gets the parent product ID.
@@ -26,7 +26,7 @@ interface LicenseVariationInterface extends PurchasableEntityInterface, EntityCh
    * @return int|null
    *   The product ID, or null.
    */
-  public function getProductId();
+  public function getLicenseId();
 
   /**
    * Get the variation SKU.

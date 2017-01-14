@@ -2,8 +2,10 @@
 
 namespace Drupal\commerce_license\Form;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\inline_entity_form\Form\EntityInlineForm;
+use Drupal\Core\Entity\EntityHandlerInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Defines the inline form for license variations.
@@ -52,7 +54,17 @@ class LicenseVariationInlineForm extends EntityInlineForm {
       ],
     ];
 
+    //  We should load the plugins here to display the resource configuration.
+    //  The idea being to allow admins to define the type of resource this license
+    //  gives the user access to.
+    //  ie, User role, node, path, software key.
+
     return $fields;
+  }
+
+  public function entityForm(array $entity_form, FormStateInterface $form_state) {
+    $entity_form = parent::entityForm($entity_form, $form_state);
+    return $entity_form;
   }
 
   /**
