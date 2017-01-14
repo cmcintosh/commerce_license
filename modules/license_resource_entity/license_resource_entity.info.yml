@@ -1,0 +1,8 @@
+name: Resource Entity Access
+type: module
+description: 'Adds a resource for Entity Access to be provided by a license.'
+package: Commerce (contrib)
+core: 8.x
+dependencies:
+  - commerce_payment
+  - commerce_license

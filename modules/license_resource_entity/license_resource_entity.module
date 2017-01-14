@@ -1,0 +1,10 @@
+<?php
+
+
+/**
+* Implements hook_entity_access to provide access to various types of entities.
+*/
+function license_resource_entity_entity_access(\Drupal\Core\Entity\EntityInterface $entity, $operation, \Drupal\Core\Session\AccountInterface $account) {
+
+  return AccessResult::neutral();
+}

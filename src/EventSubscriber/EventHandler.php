@@ -24,12 +24,11 @@ class EventHandler implements EventSubscriberInterface {
     return $events;
   }
 
-  public function onReferenceablePluginTypes() {
-    drupal_set_message('onReferenceablePluginTypes');
-    return [
-      'commerce_license_resource' => t('License Resource'),
-      'commerce_license_condition' => t('License Condition')
-    ];
+  public function onReferenceablePluginTypes(ReferenceablePluginTypesEvent $event) {
+      $plugin_types = $event->getPluginTypes();
+      $plugin_types['commerce_license_resource']  = t('License Resource');
+      $plugin_types['commerce_license_condition'] = t('License Condition');
+      $event->setPluginTypes( $plugin_types );
   }
 
 }

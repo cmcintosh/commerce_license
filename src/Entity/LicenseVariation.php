@@ -450,8 +450,8 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
 
 
     $fields['resources'] = BaseFieldDefinition::create('commerce_plugin_item:commerce_license_resource')
-      ->setLabel(t('Resources'))
-      ->setDescription(t('Enter the resource for this license, like node access or user role.'))
+      ->setLabel(t('Resource'))
+      ->setDescription(t('Enter one or more resource awarded when this license is purchased.'))
       ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
       ->setRequired(FALSE)
       ->setDisplayOptions('form', [
@@ -461,7 +461,7 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
 
     $fields['conditions'] = BaseFieldDefinition::create('commerce_plugin_item:commerce_license_condition')
       ->setLabel(t('Conditions'))
-      ->setDescription(t('Enter in conditions for this license, like expiration date, number of uses, etc.'))
+      ->setDescription(t('Enter in conditions for this license. This could be an expiration date, number of uses, etc.'))
       ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
       ->setRequired(FALSE)
       ->setDisplayOptions('form', [
@@ -490,9 +490,6 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
       ->setLabel(t('Changed'))
       ->setDescription(t('The time when the variation was last edited.'))
       ->setTranslatable(TRUE);
-
-
-
 
     return $fields;
   }

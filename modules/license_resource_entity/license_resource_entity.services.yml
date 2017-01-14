@@ -1,0 +1,4 @@
+services:
+  plugin.manager.resource_existing_entity:
+    class: Drupal\license_resource_entity\Plugin\Commerce\LicenseResource\ExistingEntityResource
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
