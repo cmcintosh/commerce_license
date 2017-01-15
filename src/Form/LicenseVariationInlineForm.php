@@ -64,6 +64,11 @@ class LicenseVariationInlineForm extends EntityInlineForm {
 
   public function entityForm(array $entity_form, FormStateInterface $form_state) {
     $entity_form = parent::entityForm($entity_form, $form_state);
+    
+    $type = \Drupal::service('plugin.manager.commerce_license_resource');
+    $plugin_definitions = $type->getDefinitions();
+    ksm($plugin_definitions);
+
     return $entity_form;
   }
 

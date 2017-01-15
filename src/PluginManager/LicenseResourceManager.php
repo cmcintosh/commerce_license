@@ -6,6 +6,8 @@ use Drupal\Component\Plugin\Factory\DefaultFactory;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
+use Drupal\Core\Plugin\Discovery\AnnotatedClassDiscovery;
+use Drupal\Core\Plugin\Discovery\ContainerDerivativeDiscoveryDecorator;
 
 /**
 * Manages discovery and instantiation of resource type plugins.
@@ -45,7 +47,23 @@ class LicenseResourceManager extends DefaultPluginManager {
 
     $this->alterInfo('commerce_license_resource_info');
     $this->setCacheBackend($cache_backend, 'commerce_license_resource_plugins');
-    $this->entityTypeManager = $entity_type_manager;
+    $this->factory = new DefaultFactory($this->getDiscovery());
+  }
+
+  protected function getDiscovery() {
+
+    ksm([
+     'subdir' => $this->subdir,
+      'namespaces' => $this->namespaces,
+      'annotation_name' => $this->pluginDefinitionAnnotationName,
+      'additional_namespace' => $this->additionalAnnotationNamespaces
+    ]);
+
+    if (!$this->discovery) {
+      $discovery = new AnnotatedClassDiscovery($this->subdir, $this->namespaces, $this->pluginDefinitionAnnotationName, $this->additionalAnnotationNamespaces);
+      $this->discovery = new ContainerDerivativeDiscoveryDecorator($discovery);
+    }
+    return $this->discovery;
   }
 
 }

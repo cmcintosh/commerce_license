@@ -45,7 +45,7 @@ class LicenseConditionManager extends DefaultPluginManager {
 
     $this->alterInfo('commerce_license_condition_info');
     $this->setCacheBackend($cache_backend, 'commerce_license_condition_plugins');
-    $this->entityTypeManager = $entity_type_manager;
+    
   }
 
 }

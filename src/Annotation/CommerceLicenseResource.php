@@ -51,7 +51,8 @@ class CommerceLicenseResource extends {
   * Constructes a new LicenseResource objcet.
   */
   public function __construct(array $values) {
-
+    drupal_set_message('annotation for resource ');
+    ksm($values);
     parent::__construct($values);
   }
 }
