@@ -199,4 +199,20 @@ final class LicenseEvents {
   * @see \Drual\commerce_license\Event\LicenseExpiredEvent
   */
   const LICENSE_EXPIRED = "commerce_license.license_expired";
+
+  /**
+  * Create an event for when commerce orders have been paid in full, so that our resource modules can react.
+  */
+  const LICENSE_ORDER_PAID_IN_FULL = "commerce_license.order_paid_in_full";
+
+  /**
+  * Create an event for cancelled orders.
+  */
+  const LICENSE_ORDER_CANCELLED = "commerce_license.order_cancelled";
+
+  /**
+  * Create an event for refunded orders.
+  */
+  const LICENSE_ORDER_REFUNDED = "commerce_license.order_refunded";
+  
 }

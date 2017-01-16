@@ -19,8 +19,7 @@ class EventHandler implements EventSubscriberInterface {
   * - Defines the events this handler will respond to.
   */
   public static function getSubscribedEvents() {
-    drupal_set_message('Get Subscribed Events');
-    $events[CommerceEvents::REFERENCEABLE_PLUGIN_TYPES][] = ['onReferenceablePluginTypes'];
+    $events[CommerceEvents::REFERENCEABLE_PLUGIN_TYPES] = ['onReferenceablePluginTypes'];
     return $events;
   }
 

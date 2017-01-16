@@ -57,6 +57,7 @@ class LicenseLazyBuilders {
     /** @var \Drupal\commerce_license\Entity\LicenseInterface $license */
     $license = $this->entityTypeManager->getStorage('commerce_license')->load($license_id);
     $order_item = $order_item_storage->createFromPurchasableEntity($license->getDefaultVariation());
+
     $form_state_additions = [
       'license' => $license,
       'view_mode' => $view_mode,

@@ -29,3 +29,11 @@ entity.commerce_license_variation_type.collection:
     _title: 'License variation types'
   requirements:
     _permission: 'administer commerce_license_type'
+
+entity.commerce_customer_license.collection:
+  path: '/user/{user}/licenses'
+  defaults:
+    _entity_list: 'commerce_customer_license'
+    _title: 'Licenses'
+  requirements:
+    _permission: 'access content'

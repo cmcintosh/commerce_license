@@ -51,14 +51,6 @@ class LicenseResourceManager extends DefaultPluginManager {
   }
 
   protected function getDiscovery() {
-
-    ksm([
-     'subdir' => $this->subdir,
-      'namespaces' => $this->namespaces,
-      'annotation_name' => $this->pluginDefinitionAnnotationName,
-      'additional_namespace' => $this->additionalAnnotationNamespaces
-    ]);
-
     if (!$this->discovery) {
       $discovery = new AnnotatedClassDiscovery($this->subdir, $this->namespaces, $this->pluginDefinitionAnnotationName, $this->additionalAnnotationNamespaces);
       $this->discovery = new ContainerDerivativeDiscoveryDecorator($discovery);

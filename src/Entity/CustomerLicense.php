@@ -13,8 +13,8 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * Defines the license entity class.
  *
  * @ContentEntityType(
- *   id = "commerce_license",
- *   label = @Translation("License"),
+ *   id = "commerce_customer_license",
+ *   label = @Translation("Customer License"),
  *   label_singular = @Translation("license"),
  *   label_plural = @Translation("licenses"),
  *   label_count = @PluralTranslation(
@@ -23,12 +23,11 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   ),
  *   bundle_label = @Translation("License type"),
  *   handlers = {
- *     "event" = "Drupal\commerce_license\Event\LicenseEvent",
  *     "storage" = "Drupal\commerce\CommerceContentEntityStorage",
  *     "access" = "Drupal\commerce\EntityAccessControlHandler",
  *     "permission_provider" = "Drupal\commerce\EntityPermissionProvider",
- *     "view_builder" = "Drupal\commerce_license\LicenseViewBuilder",
- *     "list_builder" = "Drupal\commerce_license\LicenseListBuilder",
+ *     "view_builder" = "Drupal\commerce_license\CustomerLicenseViewBuilder",
+ *     "list_builder" = "Drupal\commerce_license\CustomerLicenseListBuilder",
  *     "views_data" = "Drupal\views\EntityViewsData",
  *     "form" = {
  *       "default" = "Drupal\commerce_license\Form\LicenseForm",
@@ -44,7 +43,6 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   },
  *   admin_permission = "administer commerce_license",
  *   permission_granularity = "bundle",
- *   fieldable = TRUE,
  *   translatable = TRUE,
  *   base_table = "commerce_license",
  *   data_table = "commerce_license_field_data",
@@ -57,20 +55,14 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "status" = "status",
  *   },
  *   links = {
- *     "canonical" = "/license/{commerce_license}",
- *     "add-page" = "/license/add",
- *     "add-form" = "/license/add/{commerce_license_type}",
- *     "edit-form" = "/license/{commerce_license}/edit",
- *     "delete-form" = "/license/{commerce_license}/delete",
- *     "delete-multiple-form" = "/admin/commerce/licenses/delete",
+ *     "canonical" = "/user/{user}/license/{commerce_license}",
  *     "collection" = "/admin/commerce/licenses"
  *   },
- *   bundle_entity_type = "commerce_license_type",
- *   field_ui_base_route = "entity.commerce_license_type.edit_form",
+
  * )
  */
 
-class License extends ContentEntityBase implements LicenseInterface {
+class CustomerLicense extends ContentEntityBase {
 
   use EntityChangedTrait;
 
@@ -92,16 +84,19 @@ class License extends ContentEntityBase implements LicenseInterface {
   /**
   * {@inheritdoc}
   */
-  public function isPublished() {
-    return (bool) $this->getEntityKey('status');
+  public function isExpired() {
+    return (bool) $this->getEntityKey('expired');
 
   }
 
   /**
   * {@inheritdoc}
   */
-  public function setPublished($published) {
-    $this->set('status', (bool) $published);
+  public function setPublished($expired) {
+    $this->set('expired', (bool) $expired);
+    if (true) {
+      $this->setExpirationTime(time());
+    }
     return $this;
   }
 
@@ -121,37 +116,17 @@ class License extends ContentEntityBase implements LicenseInterface {
   }
 
   /**
-  * {@inheritdoc}
+  * Gets the expiration datetime.
   */
-  public function getStores() {
-    $stores = $this->get('stores')->referencedEntities();
-    return $this->ensureTranslations($stores);
+  public function getExpirationTime() {
+    return $this->get('expiration')->value;
   }
 
   /**
-  * {@inheritdoc}
+  * Sets the expiration datetime.
   */
-  public function setStores(array $stores) {
-    $this->set('stores', $stores);
-    return $this;
-  }
-
-  /**
-  * {@inheritdoc}
-  */
-  public function getStoreIds() {
-    $store_ids = [];
-    foreach ($this->get('stores') as $store_item) {
-      $store_ids[] = $store_item->target_id;
-    }
-    return $store_ids;
-  }
-
-  /**
-  * {@inheritdoc}
-  */
-  public function setStoreIds(array $store_ids) {
-    $this->set('stores', $store_ids);
+  public function setExpirationTime($timestamp) {
+    $this->set('expiration', $timestamp);
     return $this;
   }
 
@@ -188,9 +163,9 @@ class License extends ContentEntityBase implements LicenseInterface {
   /**
    * {@inheritdoc}
    */
-  public function getVariationIds() {
+  public function getVariationId() {
     $variation_ids = [];
-    foreach ($this->get('variations') as $field_item) {
+    foreach ($this->get('variation') as $field_item) {
       $variation_ids[] = $field_item->target_id;
     }
     return $variation_ids;
@@ -199,77 +174,17 @@ class License extends ContentEntityBase implements LicenseInterface {
   /**
    * {@inheritdoc}
    */
-  public function getVariations() {
-    $variations = $this->get('variations')->referencedEntities();
+  public function getVariation() {
+    $variations = $this->get('variation')->referencedEntities();
     return $this->ensureTranslations($variations);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setVariations(array $variations) {
-    $this->set('variations', $variations);
+  public function setVariation(array $variations) {
+    $this->set('variation', $variations);
     return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function hasVariations() {
-    return !$this->get('variations')->isEmpty();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function addVariation(LicenseVariationInterface $variation) {
-    if (!$this->hasVariation($variation)) {
-      $this->get('variations')->appendItem($variation);
-    }
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function removeVariation(LicenseVariationInterface $variation) {
-    $index = $this->getVariationIndex($variation);
-    if ($index !== FALSE) {
-      $this->get('variations')->offsetUnset($index);
-    }
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function hasVariation(LicenseVariationInterface $variation) {
-    return in_array($variation->id(), $this->getVariationIds());
-  }
-
-  /**
-   * Gets the index of the given variation.
-   *
-   * @param \Drupal\commerce_license\Entity\LicenseVariationInterface $variation
-   *   The variation.
-   *
-   * @return int|bool
-   *   The index of the given variation, or FALSE if not found.
-   */
-  protected function getVariationIndex(LicenseVariationInterface $variation) {
-    return array_search($variation->id(), $this->getVariationIds());
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDefaultVariation() {
-    foreach ($this->getVariations() as $variation) {
-      // Return the first active variation.
-      if ($variation->isActive() && $variation->access('view')) {
-        return $variation;
-      }
-    }
   }
 
   /**
@@ -294,40 +209,6 @@ class License extends ContentEntityBase implements LicenseInterface {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function postSave(EntityStorageInterface $storage, $update = TRUE) {
-    parent::postSave($storage, $update);
-
-    // Ensure there's a back-reference on each license variation.
-    foreach ($this->variations as $item) {
-      $variation = $item->entity;
-      if ($variation->license_id->isEmpty()) {
-        $variation->license_id = $this->id();
-        $variation->save();
-      }
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function postDelete(EntityStorageInterface $storage, array $entities) {
-    // Delete the license variations of a deleted license.
-    $variations = [];
-    foreach ($entities as $entity) {
-      if (empty($entity->variations)) {
-        continue;
-      }
-      foreach ($entity->variations as $item) {
-        $variations[$item->target_id] = $item->entity;
-      }
-    }
-    $variation_storage = \Drupal::service('entity_type.manager')->getStorage('commerce_license_variation');
-    $variation_storage->delete($variations);
-  }
-
-  /**
   * {@inheritdoc}
   */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
@@ -347,38 +228,7 @@ class License extends ContentEntityBase implements LicenseInterface {
       ])
       ->setDisplayConfigurable('form', TRUE);
 
-    $fields['title'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Title'))
-      ->setDescription(t('The license title.'))
-      ->setRequired(TRUE)
-      ->setTranslatable(TRUE)
-      ->setSettings([
-        'default_value' => '',
-        'max_length' => 255,
-      ])
-      ->setDisplayOptions('view', [
-        'label' => 'hidden',
-        'type' => 'string',
-        'weight' => -5,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'string_textfield',
-        'weight' => -5,
-      ])
-      ->setDisplayConfigurable('form', TRUE);
-
-    $fields['path'] = BaseFieldDefinition::create('path')
-      ->setLabel(t('URL alias'))
-      ->setDescription(t('The license URL alias.'))
-      ->setTranslatable(TRUE)
-      ->setDisplayOptions('form', [
-        'type' => 'path',
-        'weight' => 30,
-      ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setCustomStorage(TRUE);
-
-    $fields['status'] = BaseFieldDefinition::create('boolean')
+    $fields['expired'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Published'))
       ->setDescription(t('Whether the license is published.'))
       ->setDefaultValue(TRUE)
@@ -400,6 +250,75 @@ class License extends ContentEntityBase implements LicenseInterface {
       ->setLabel(t('Changed'))
       ->setDescription(t('The time when the license was last edited.'))
       ->setTranslatable(TRUE);
+
+    $fields['expiration'] = BaseFieldDefinition::create('changed')
+      ->setLabel(t('Changed'))
+      ->setDescription(t('The time when the license was last edited.'))
+      ->setTranslatable(TRUE);
+
+    $fields['data'] = BaseFieldDefinition::create('map')
+      ->setLabel(t('Data'))
+      ->setDescription(t('A serialized array of additional data.'));
+
+    $fields['variation'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('License'))
+      ->setDescription(t('Details for this issued license.'))
+      ->setRequired(TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'entity_reference_autocomplete',
+        'weight' => -1,
+        'settings' => [
+          'match_operator' => 'CONTAINS',
+          'size' => '60',
+          'placeholder' => '',
+        ],
+      ])
+      ->setSettings(array(
+        'target_type' => 'commerce_license_variation',
+        'default_value' => 0,
+      ))
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+      $fields['order'] = BaseFieldDefinition::create('entity_reference')
+        ->setLabel(t('Order'))
+        ->setDescription(t('The order that this license was purchased with.'))
+        ->setRequired(TRUE)
+        ->setDisplayOptions('form', [
+          'type' => 'entity_reference_autocomplete',
+          'weight' => -1,
+          'settings' => [
+            'match_operator' => 'CONTAINS',
+            'size' => '60',
+            'placeholder' => '',
+          ],
+        ])
+        ->setSettings(array(
+          'target_type' => 'commerce_order',
+          'default_value' => 0,
+        ))
+        ->setDisplayConfigurable('form', TRUE)
+        ->setDisplayConfigurable('view', TRUE);
+
+        $fields['order_item'] = BaseFieldDefinition::create('entity_reference')
+          ->setLabel(t('Order'))
+          ->setDescription(t('The order item that this license was purchased with.'))
+          ->setRequired(TRUE)
+          ->setDisplayOptions('form', [
+            'type' => 'entity_reference_autocomplete',
+            'weight' => -1,
+            'settings' => [
+              'match_operator' => 'CONTAINS',
+              'size' => '60',
+              'placeholder' => '',
+            ],
+          ])
+          ->setSettings(array(
+            'target_type' => 'commerce_order_item',
+            'default_value' => 0,
+          ))
+          ->setDisplayConfigurable('form', TRUE)
+          ->setDisplayConfigurable('view', TRUE);
 
     return $fields;
   }

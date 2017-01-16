@@ -6,46 +6,60 @@ use Drupal\Core\Condition\ConditionPluginBase;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CssCommand;
 use Drupal\Core\Ajax\HtmlCommand;
-
 /**
 * @file
 * - Provides a user access to an existing entity.
 *
 * @CommerceLicenseResource(
-*   id = "resource_existing_entity",
-*   label = "Exsiting Entity Access",
-*   display_label = "Existing Entity Access"
+*   id = "resource_newest_entity",
+*   label = "Newest Entity Access",
+*   display_label = "Newest Entity Access"
 * )
 *
 */
-class ExistingEntityResource extends ConditionPluginBase {
+class NewEntityResource extends ConditionPluginBase {
 
   public function summary() {
-    return t('Select a entity type, entity, and action to provide access for.');
+    return t('This will give the customer access to the newly published entities.');
   }
 
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
 
     parent::buildConfigurationForm($form, $form_state);
 
-    // Maybe better to have autocomplete here?
-    $form['entity'] = [
-      '#type' => 'entity_autocomplete',
-      '#target_type' => 'node',
-      '#title' => t('Entity'),
-      '#description' => t('Select the entity you wish to provide access for.')
+    $form['entity_type'] = [
+      '#type' => 'select',
+      '#title' => t('Entity Type'),
+      '#description' => t('Select the entity type to award to the customer.'),
+      '#options' => $this->getEntityTypes(),
+      '#ajax' => [
+        'wrapper' => 'bundle-wrapper',
+        'method' => 'replace',
+        'callback' => [$this, 'entityTypeSelectAjax']
+      ]
     ];
 
 
+    if ($entity_type = $form_state->getValue('entity_type')) {
+      $form['bundle'] = [
+        '#type' => 'select',
+        '#title' => t('Bundle'),
+        '#description' => t('Select the bundle or sub type to use when awarding access.'),
+        '#options' => $this->getEntityBundles($entity_type),
+        '#prefix' => '<div id="bundle-wrapper">',
+        '#suffix' => '</div>'
+      ];
+    }
+    else {
+      $form['bundle'] = [
+        '#type' => 'markup',
+        '#markup' => t('Please select a entity type to continue.'),
+        '#prefix' => '<div id="bundle-wrapper">',
+        '#suffix' => '</div>'
+      ];
+    }
+
     return $form;
-  }
-
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-
-  }
-
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-
   }
 
   public function entityTypeSelectAjax(array &$form, FormStateInterface $form_state) {
@@ -53,11 +67,6 @@ class ExistingEntityResource extends ConditionPluginBase {
 
     $form['bundle']['#options'] = $this->getEntityBundles( $form_state->getValue('entity_type') );
     return $form['bundle'];
-  }
-
-  public function evaluate() {
-    drupal_set_message('evaluate');
-    return true;
   }
 
   private function getEntityTypes() {

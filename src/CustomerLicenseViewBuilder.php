@@ -10,12 +10,10 @@ use Drupal\Core\Entity\EntityViewBuilder;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-use Drupal\commerce_cart\Form\AddToCartForm;
-
 /**
  * Defines the entity view builder for licenses.
  */
-class LicenseViewBuilder extends EntityViewBuilder {
+class CustomerLicenseViewBuilder extends EntityViewBuilder {
 
   /**
    * The license field variation renderer.

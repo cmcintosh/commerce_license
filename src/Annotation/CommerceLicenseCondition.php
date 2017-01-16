@@ -4,7 +4,17 @@ namespace Drupal\commerce_license\Annotation;
 
 use Drupal\Core\Condition\Annotation\Condition;
 
-class CommerceLicenseCondition extends {
+/**
+ * Defines a condition plugin annotation object.
+ * For our use we will be setting what the conditions are for an valid
+ * license to remain valid.
+ *
+ *
+ * @ingroup plugin_api
+ *
+ * @Annotation
+ */
+class CommerceLicenseCondition extends Condition {
 
   /**
    * The plugin ID.

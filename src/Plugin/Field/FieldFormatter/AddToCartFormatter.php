@@ -11,7 +11,7 @@ use Drupal\Core\Form\FormStateInterface;
  * Plugin implementation of the 'commerce_add_to_cart' formatter.
  *
  * @FieldFormatter(
- *   id = "commerce_add_to_cart",
+ *   id = "commerce_license_add_to_cart",
  *   label = @Translation("Add to cart form"),
  *   field_types = {
  *     "entity_reference",

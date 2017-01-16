@@ -217,11 +217,17 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
    * {@inheritdoc}
    */
   public function getOrderItemTypeId() {
+    // We actually need to find an order item, that accepts license variation entities.
+    // for now hardcode, it and get with bojan about a correct method for this
+
     // The order item type is a bundle-level setting.
     $type_storage = $this->entityTypeManager()->getStorage('commerce_license_variation_type');
     $type_entity = $type_storage->load($this->bundle());
 
-    return $type_entity->getOrderItemTypeId();
+    /**
+    * @TODO: get with bojang so we can get correct method.
+    */
+    return 'license';
   }
 
   /**
@@ -525,6 +531,21 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
    */
   public static function getCurrentUserId() {
     return [\Drupal::currentUser()->id()];
+  }
+
+  /**
+  * Will return specific information from the License Resource plugin.
+  * - for now lets return an array to test check out.
+  */
+  public function getResourceInfo() {
+    return [];
+  }
+
+  /**
+  * Will return specific information from the License Condition plugin(s).
+  */
+  public function getConditionInfo() {
+    return [];
   }
 
 }
