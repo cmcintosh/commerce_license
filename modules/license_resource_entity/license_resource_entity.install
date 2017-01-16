@@ -49,23 +49,6 @@ function license_resource_entity_schema() {
     ]
   ];
 
-  // Information for giving access to the newest entity
-  $schema['resource_new_entity'] = [
-    'fields' => [
-      'license_variation_id' => [
-        'type' => 'int'
-      ],
-      'entity_type' => [
-        'type' => 'varchar',
-        'length' => 255,
-      ],
-      'op' => [
-        'type' => 'varchar',
-        'length' => 255
-      ],
-    ]
-  ];
-
   // Access table.
   $schema['resource_entity_access'] = [
     'fields' => [

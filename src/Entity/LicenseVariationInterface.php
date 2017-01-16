@@ -150,4 +150,14 @@ interface LicenseVariationInterface extends PurchasableEntityInterface, EntityCh
    */
   public function getAttributeValue($field_name);
 
+  /**
+  * returns all of the related resource info typed by the resource plugin id.
+  */
+  public function getResourceInfo();
+
+  /**
+  * returns all of the related condition info typed by the condition plugin id.
+  */
+  public function getConditionInfo();
+
 }

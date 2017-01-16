@@ -11,6 +11,9 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Url;
 use Drupal\user\UserInterface;
+use Drupal\commerce_license\Event\LicenseEvents;
+use Drupal\commerce_license\Event\LicenseResourceInfoEvent;
+use Drupal\commerce_license\Event\LicenseConditionInfoEvent;
 
 /**
  * Defines the license variation entity class.
@@ -538,14 +541,24 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
   * - for now lets return an array to test check out.
   */
   public function getResourceInfo() {
-    return [];
+    // We need to use events here to pull in the keyed information.
+    $dispatcher = \Drupal::service('event_dispatcher');
+    $event = new LicenseResourceInfoEvent($this);
+    $dispatcher->dispatch(LicenseEvents::LICENSE_RESOURCE_INFO, $event);
+
+    return $event->getInfo();
   }
 
   /**
   * Will return specific information from the License Condition plugin(s).
   */
   public function getConditionInfo() {
-    return [];
+    // We need to use events here to pull in the keyed information.
+    $dispatcher = \Drupal::service('event_dispatcher');
+    $event = new LicenseConditionInfoEvent($this);
+    $dispatcher->dispatch(LicenseEvents::LICENSE_CONDITION_INFO, $event);
+
+    return $event->getInfo();
   }
 
 }

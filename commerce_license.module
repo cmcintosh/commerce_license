@@ -67,31 +67,7 @@ function commerce_license_entity_access(EntityInterface $entity, $operation, $ac
 * - whenever we see a new commerce_payment entity check its total vs the order it is for
 *   if they match, then create a customer_license if that order has license(s).
 */
-function commerce_license_entity_insert(EntityInterface $entity) {
-  try {
-    if ( is_a($entity, '\Drupal\commerce_payment\Entity\CommercePaymentInterface') ) {
-      if ($entity->getBalance() == 0) {
-          // Paid in full, check if the order has any Licenses
-          $order = \Drupal::entityTypeManager()
-            ->getStorage('commerce_order')
-            ->load($entity->get('order_id'));
-          $items = $order->getItems();
-
-          // loop through to check for one.
-          foreach($items as $order_item) {
-            if ($order_item->getPurchasedEntity()->getTypeId() == 'commerce_license_variation') {
-              processLicenseVariation($order, $order_item->getPurchasedEntity());
-            }
-          }
-      }
-    }
-  }
-  catch (Exception $e) {
-    watchdog_exception('commerce_license', $e);
-    throw $e;
-  }
-
-}
+function commerce_license_entity_insert(EntityInterface $entity) { }
 
 /**
 * Implements hook_entity_update().
@@ -100,24 +76,23 @@ function commerce_license_entity_insert(EntityInterface $entity) {
 *   are no licenses yet created.
 */
 function commerce_license_entity_update(EntityInterface $entity) {
-  try {
-    if (is_a($entity, '\Drupal\commerce_payment\Entity\CommercePaymentInterface')) {
-      if ($entity->getBalance() == 0) {
-          // Paid in full, check if the order has any Licenses
-          $order = \Drupal::entityTypeManager()
-            ->getStorage('commerce_order')
-            ->load($entity->get('order_id'));
-          $items = $order->getItems();
 
-          // loop through to check for one.
-          foreach($items as $delta => $order_item) {
-            if ($order_item->getPurchasedEntity()->getTypeId() == 'commerce_license_variation') {
-              if ( licenseNotProcessed($order, $order_item, $order_item->getPurchasedEntity()) ) {
-                processLicenseVariation($order, $order_item, $order_item->getPurchasedEntity());
+  try {
+
+    if (is_a($entity, 'Drupal\commerce_order\Entity\Order')) {
+          if ($entity->getCompletedTime() > 0) {
+            drupal_set_message('Completed');
+            $items = $entity->getItems();
+            // loop through to check for one.
+            foreach($items as $delta => $order_item) {
+              drupal_set_message(get_class($order_item->getPurchasedEntity()));
+              if ( is_a($order_item->getPurchasedEntity(), 'Drupal\commerce_license\Entity\LicenseVariation') ) {
+                if ( licenseNotProcessed($entity, $order_item, $order_item->getPurchasedEntity()) ) {
+                  processLicenseVariation($entity, $order_item, $order_item->getPurchasedEntity());
+                }
               }
             }
           }
-      }
     }
   } catch (Exception $e) {
     watchdog_exception('commerce_license', $e);
@@ -128,28 +103,29 @@ function commerce_license_entity_update(EntityInterface $entity) {
 /**
 * Checks if there is an existing customer license for the provided order, and order item.
 */
-function licenseNotProcessed($order, $order_item, $license) {
+function licenseNotProcessed($order, $order_item, $license_variation) {
   // Perform a entity query here and return false if we need to create a customer license
   $ids = [];
   try {
-    $query = \Drupal::entityQuery('commerce_customer_license')
-      ->condition('order.entity.order_number', $order->getOrderNumber())
-      ->condition('variation.entity.license_id', $license->getLicenseId());
 
-    // Somehow maybe we should check the delta of the order item.
-    // or attach the customer_license to the order_item after the
-    // order is complete so that we can track this better.
+    $query = \Drupal::database()
+      ->select('commerce_license_customer_license', 'cl');
+    $query->addField('cl', 'id');
+    $query->addField('cl', 'uid');
+    $query->condition('cl.order_id', $order->getOrderNumber() );
+    $query->condition('cl.license_id', $license_variation->getLicenseId() );
+    $query->condition('cl.variation_id', $license_variation->get('variation_id')->value );
+    $query->condition('cl.uid', $order->getCustomerId() );
 
-    // There maybe some issues if a customer purchases more than one of the same license in a order.
-    // Although, maybe a rare possibility, we should account for it.
+    $query->allowRowCount = TRUE;
+    $result = $query->execute()->fetchAllAssoc('id');
 
-    $ids = $query->execute();
   } catch (Exception $e) {
     watchdog_exception('commerce_license', $e);
     throw $e;
   }
 
-  return (count($ids) < 1);
+  return (count($result) < 1);
 }
 
 /**
@@ -160,21 +136,27 @@ function processLicenseVariation($order, $order_item, $license_variation) {
   // Create a new customer_license entity here, so that the customer has an instance of
   // the information that can be altered as needed based on the conditions.
   try {
-    $customer_license = CustomerLicense::create([
-      'type' => 'default',
-      'uid' => $order->getCustomerId(),
-      'expired' => FALSE,
-      'created' => time(),
-      'changed' => time(),
-      'data' => [
-        'resource' => $license_variation->getResourceInfo(),    // Return the License Variation Resource plugin details.
-        'condition' => $license_variation->getConditionInfo(),  // Return the License Variation Condition plugin details.
-      ],
-      'variation' => [
-        'target_id' => $license_variation->getLicenseId()
-        ],
-    ]);
-    $customer_license->save();
+    $timestamp = time();
+    $data = [
+        'uid'          => $order->getCustomerId(),
+        'order_id'     => $order->getOrderNumber(),
+        'license_id'   => $license_variation->getLicenseId(),
+        'variation_id' => $license_variation->get('variation_id')->value,
+        'created'      => $timestamp,
+        'updated'      => $timestamp,
+        'expiration'   => 0,
+        'data'         => serialize([
+          'resource'   => $license_variation->getResourceInfo(),
+          'condition'  => $license_variation->getConditionInfo(),
+          ])
+    ];
+
+    $query = \Drupal::database()
+      ->insert('commerce_license_customer_license');
+    $query->fields(array_keys($data));
+    $query->values(array_values($data));
+    $query->execute();
+
   } catch (Exception $e) {
     watchdog_exception('commerce_license', $e);
     throw $e;

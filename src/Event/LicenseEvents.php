@@ -214,5 +214,14 @@ final class LicenseEvents {
   * Create an event for refunded orders.
   */
   const LICENSE_ORDER_REFUNDED = "commerce_license.order_refunded";
-  
+
+  /**
+  * Create a event that returns the resource info.
+  */
+  const LICENSE_RESOURCE_INFO = "commerce_license.resource_info";
+
+  /**
+  * Create a event that gets the condition info.
+  */
+  const LICENSE_CONDITION_INFO = "commerce_license.condition_info";
 }
