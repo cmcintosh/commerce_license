@@ -14,6 +14,8 @@ use Drupal\Core\Entity\Display\EntityFormDisplayInterface;
 use Drupal\Core\Render\Element;
 
 use Drupal\commerce_license\Entity\CustomerLicense;
+use Drupal\commerce_license\Event\LicenseEvents;
+use Drupal\commerce_license\Event\LicenseIssuedEvent;
 
 /**
  * Implements hook_config_translation_info_alter().
@@ -81,11 +83,10 @@ function commerce_license_entity_update(EntityInterface $entity) {
 
     if (is_a($entity, 'Drupal\commerce_order\Entity\Order')) {
           if ($entity->getCompletedTime() > 0) {
-            drupal_set_message('Completed');
+            
             $items = $entity->getItems();
             // loop through to check for one.
             foreach($items as $delta => $order_item) {
-              drupal_set_message(get_class($order_item->getPurchasedEntity()));
               if ( is_a($order_item->getPurchasedEntity(), 'Drupal\commerce_license\Entity\LicenseVariation') ) {
                 if ( licenseNotProcessed($entity, $order_item, $order_item->getPurchasedEntity()) ) {
                   processLicenseVariation($entity, $order_item, $order_item->getPurchasedEntity());
@@ -151,11 +152,20 @@ function processLicenseVariation($order, $order_item, $license_variation) {
           ])
     ];
 
+
     $query = \Drupal::database()
       ->insert('commerce_license_customer_license');
     $query->fields(array_keys($data));
     $query->values(array_values($data));
     $query->execute();
+    $data['data'] = unserialize($data['data']);
+
+
+    // we need to call the License Issued event.
+    // Some resources / conditions may need to respond.
+    $dispatcher = \Drupal::service('event_dispatcher');
+    $event = new LicenseIssuedEvent($license_variation, $data);
+    $dispatcher->dispatch(LicenseEvents::LICENSE_ISSUED, $event);
 
   } catch (Exception $e) {
     watchdog_exception('commerce_license', $e);

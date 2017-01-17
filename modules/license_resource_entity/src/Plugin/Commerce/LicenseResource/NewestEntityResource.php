@@ -17,55 +17,90 @@ use Drupal\Core\Ajax\HtmlCommand;
 * )
 *
 */
-class ExistingEntityResource extends ConditionPluginBase {
+class NewestEntityResource extends ConditionPluginBase {
 
   public function summary() {
     return t('This will give the customer access to the newest created entity.');
   }
 
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  public function evaluate() {
+    return true;
+  }
 
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     parent::buildConfigurationForm($form, $form_state);
 
-    $form['entity_type'] = [
-      '#type' => 'select',
-      '#title' => t('Entity Type'),
-      '#description' => t('Select the entity type to award to the customer.'),
-      '#options' => $this->getEntityTypes(),
-      '#ajax' => [
-        'wrapper' => 'bundle-wrapper',
-        'method' => 'replace',
-        'callback' => [$this, 'entityTypeSelectAjax']
-      ]
+    $values = $form_state->getValues();
+    $resources = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['resources'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['resources'];
+    $sku = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['sku'][0]['value'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['sku'][0]['value'];
+    $defaults = null;
+
+    if ( $sku ) {
+      // Check if we have settings for this sku.
+      $query = \Drupal::database()
+        ->select('resource_newest_entity', 're');
+
+      $query->condition('re.sku', $sku, '=' );
+
+      $query->addfield('re', 'sku');
+      $query->addField('re', 'bundle');
+      $result = $query->execute()->fetchAllAssoc('sku');
+
+      if (isset($result[$sku])) {
+        $defaults = $result[$sku];
+      }
+    }
+
+    $entity_type = 'node';
+    $form['resource_entity_type'] = [
+      '#type' => 'hidden',
+      '#value' => 'node'
     ];
-
-
-    if ($entity_type = $form_state->getValue('entity_type')) {
-      $form['bundle'] = [
-        '#type' => 'select',
-        '#title' => t('Bundle'),
-        '#description' => t('Select the bundle or sub type to use when awarding access.'),
-        '#options' => $this->getEntityBundles($entity_type),
-        '#prefix' => '<div id="bundle-wrapper">',
-        '#suffix' => '</div>'
-      ];
-    }
-    else {
-      $form['bundle'] = [
-        '#type' => 'markup',
-        '#markup' => t('Please select a entity type to continue.'),
-        '#prefix' => '<div id="bundle-wrapper">',
-        '#suffix' => '</div>'
-      ];
-    }
-
+    $form['resource_bundle'] = [
+      '#type' => 'select',
+      '#title' => t('Bundle'),
+      '#description' => t('Select the bundle or sub type to use when awarding access.'),
+      '#options' => $this->getEntityBundles($entity_type),
+      '#prefix' => '<div id="bundle-wrapper">',
+      '#suffix' => '</div>',
+      '#default_value' => isset($defaults->bundle) ? $defaults->bundle : 0
+    ];
     return $form;
   }
 
-  public function entityTypeSelectAjax(array &$form, FormStateInterface $form_state) {
-    $form_state->setRebuild(true);
+  public function submitConfigurationForm(array &$form = null, FormStateInterface $form_state) {
+    $values = $form_state->getValues();
 
-    $form['bundle']['#options'] = $this->getEntityBundles( $form_state->getValue('entity_type') );
+    $resources = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['resources'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['resources'];
+    $sku = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['sku'][0]['value'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['sku'][0]['value'];
+
+    foreach($resources as $resource) {
+
+      if (is_array($resource)){
+
+        if ($resource['target_plugin_id'] == 'resource_newest_entity') {
+          $data = [
+            'sku' => $sku,
+            'entity_type' => 'node',
+            'bundle' => $resource['target_plugin_configuration']['resource_bundle'],
+            'op' => 'view'
+          ];
+          db_merge('resource_newest_entity')
+            ->key(array('sku' => $data['sku']))
+            ->fields($data)
+            ->execute();
+        }
+      }
+    }
+
+  }
+
+  public static function entityTypeSelectAjax(array &$form, FormStateInterface $form_state) {
+    $form_state->setRebuild(true);
+    $values = $form_state->getValues();
+    
+
+    $form['bundle']['#options'] = NewestEntityResource::getEntityBundles( $form_state->getValue('resource_entity_type') );
     return $form['bundle'];
   }
 
@@ -92,8 +127,9 @@ class ExistingEntityResource extends ConditionPluginBase {
 
     if ($entity_type !== NULL) {
       $bundles = entity_get_bundles($entity_type);
+
       foreach($bundles as $bundle => $info) {
-        $options[$bundle] = $bundle;
+        $options[$bundle] = $info['label'];
       }
     }
     return $options;

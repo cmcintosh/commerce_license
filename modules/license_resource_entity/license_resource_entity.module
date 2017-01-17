@@ -1,11 +1,117 @@
 <?php
 
+use Drupal\Core\Database\Database;
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Session\AccountInterface;
 
 /**
 * Implements hook_entity_access to provide access to various types of entities.
+*  - This is used to override default behavior where needed.
 */
-function license_resource_entity_entity_access(\Drupal\Core\Entity\EntityInterface $entity, $operation, \Drupal\Core\Session\AccountInterface $account) {
-
+function license_resource_entity_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
   return AccessResult::neutral();
+}
+
+/**
+* Implements hook_ENTITY_TYPE_insert
+*/
+function license_resource_entity_node_insert(EntityInterface $entity) {
+  drupal_set_message('node insert');
+  // First check if we have any licenses working for this bundle
+  if ($entity->status) {
+    $type = $entity->bundle();
+
+    $query = \Drupal::database()
+      ->select('resource_new_entity', 're');
+    $query->join('commerce_license_variation_field_data', 'clfd', 'clfd.sku = re.sku');
+    $query->join('commerce_license_customer_license', 'clu', 'clu.variation_id = clfd.variation_id');
+    $query->addField('clu', 'uid');
+    $query->addField('clu', 'id');
+    $query->addField('clu', 'data');
+    $query->condition('re.bundle', $type, '=');
+    $results = $query->execute()->fetchAllAssoc('uid');
+
+    foreach($results as $uid => $row) {
+      $data = unserialize($row->data);
+
+      if ($data['resource']['resource_new_entity']['quantity'] > 0) {
+        // add access for this user.
+        $data = [
+          'customer_license_id' => $row->id,
+          'uid' => $uid,
+          'entity_type' => 'node',
+          'id' => $entity->id(),
+          'op' => 'view'
+        ];
+        $conn = Database::getConnection();
+        $conn->insert('resource_entity_access')->fields($data)->execute();
+
+        // Next update remaining quantity.
+        $data['resource']['resource_new_entity']['quantity'] = $data['resource']['resource_new_entity']['quantity'] - 1;
+        db_merge('commerce_license_customer_license')
+        ->key(array('id' => $row->id))
+        ->fields([
+          'data' => serialize($data),
+        ])
+        ->execute();
+      }
+    }
+
+  }
+}
+
+/**
+* Implements hook_entity_{entity_type}_delete
+*/
+function license_resource_license_variation_delete(Drupal\Core\Entity\EntityInterface $entity) {
+
+  db_delete('resource_existing_entity')
+   ->condition('sku', $entity->getSKU())
+   ->execute();
+
+  db_delete('resource_new_entity')
+   ->condition('sku', $entity->getSKU())
+   ->execute();
+
+   db_delete('resource_newest_entity')
+    ->condition('sku', $entity->getSKU())
+    ->execute();
+
+}
+
+/**
+* Creates a simple callback so that developers can create customized behavior.
+*/
+function license_resource_entity_has_access(EntityInterface $entity, $op, AccountInterface $account) {
+
+  // Perform a check in the access table and return true / false.
+  $data = [
+    'uid' => $account->id(),
+    'entity_type' => $entity->getEntityTypeId(),
+    'id' => $entity->id(),
+    'op' => $op,
+  ];
+  $query = \Drupal::database()
+    ->select('resource_entity_access', 'cl');
+
+  $query->condition('cl.order_id', $order->getOrderNumber() );
+  $query->condition('cl.license_id', $license_variation->getLicenseId() );
+  $query->condition('cl.variation_id', $license_variation->get('variation_id')->value );
+  $query->condition('cl.uid', $order->getCustomerId() );
+  $query->join('commerce_license_customer_license', 'cul', 'cul.id = cl.customer_license_id');
+
+  $query->addField('cl', 'id');
+  $query->addField('cl', 'uid');
+  $query->addField('cul', 'expiration');
+  $query->orderBy('cul.expiration', 'DESC');
+
+  $query->allowRowCount = TRUE;
+  $result = $query->execute()->fetchAllAssoc('id');
+
+  if ( count($result) > 0) {
+
+  }
+
+  return false;
 }

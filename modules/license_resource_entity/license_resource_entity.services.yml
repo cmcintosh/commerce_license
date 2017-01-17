@@ -1,4 +1,14 @@
 services:
+  license_resource_entity:
+    class: '\Drupal\license_resource_entity\EventSubscriber\EventHandler'
+    tags:
+      - { name: 'event_subscriber' }
   plugin.manager.resource_existing_entity:
     class: Drupal\license_resource_entity\Plugin\Commerce\LicenseResource\ExistingEntityResource
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
+  plugin.manager.newest_entity:
+    class: Drupal\license_resource_entity\Plugin\Commerce\LicenseResource\NewestEntityResource
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
+  plugin.manager.new_entity:
+    class: Drupal\license_resource_entity\Plugin\Commerce\LicenseResource\NewEntityResource
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']

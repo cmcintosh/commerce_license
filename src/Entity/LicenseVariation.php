@@ -544,7 +544,7 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
     // We need to use events here to pull in the keyed information.
     $dispatcher = \Drupal::service('event_dispatcher');
     $event = new LicenseResourceInfoEvent($this);
-    $dispatcher->dispatch(LicenseEvents::LICENSE_RESOURCE_INFO, $event);
+    $event = $dispatcher->dispatch(LicenseEvents::LICENSE_RESOURCE_INFO, $event);
 
     return $event->getInfo();
   }
@@ -554,11 +554,11 @@ class LicenseVariation extends ContentEntityBase implements LicenseVariationInte
   */
   public function getConditionInfo() {
     // We need to use events here to pull in the keyed information.
-    $dispatcher = \Drupal::service('event_dispatcher');
-    $event = new LicenseConditionInfoEvent($this);
-    $dispatcher->dispatch(LicenseEvents::LICENSE_CONDITION_INFO, $event);
+    // $dispatcher = \Drupal::service('event_dispatcher');
+    // $event = new LicenseConditionInfoEvent($this);
+    // $dispatcher->dispatch(LicenseEvents::LICENSE_CONDITION_INFO, $event);
 
-    return $event->getInfo();
+    return []; // $event->getInfo();
   }
 
 }

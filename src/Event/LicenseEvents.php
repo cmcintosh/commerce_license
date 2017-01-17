@@ -192,6 +192,15 @@ final class LicenseEvents {
   const FILTER_VARIATIONS = "commerce_license.filter_variations";
 
   /**
+  * Name of the event fired when a customer is issued a license.
+  *
+  * @Event
+  *
+  * @see \Drual\commerce_license\Event\LicenseExpiredEvent
+  */
+  const LICENSE_ISSUED = "commerce_license.license_issued";
+
+  /**
   * Name of the event fired when a license expires.
   *
   * @Event

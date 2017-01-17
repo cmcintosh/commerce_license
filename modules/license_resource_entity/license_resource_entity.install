@@ -12,6 +12,10 @@ function license_resource_entity_schema() {
         'description' => 'The primary identifier for a license variation.',
         'type' => 'int',
       ],
+      'sku' => [
+        'type' => 'varchar',
+        'length' => 255
+      ],
       'entity_type' => [
         'description' => 'The entity type we are providing access for.',
         'type' => 'varchar',
@@ -35,7 +39,15 @@ function license_resource_entity_schema() {
       'license_variation_id' => [
         'type' => 'int'
       ],
+      'sku' => [
+        'type' => 'varchar',
+        'length' => 255,
+      ],
       'entity_type' => [
+        'type' => 'varchar',
+        'length' => 255,
+      ],
+      'bundle' => [
         'type' => 'varchar',
         'length' => 255,
       ],
@@ -46,6 +58,30 @@ function license_resource_entity_schema() {
       'quantity' => [
         'type' => 'int',
       ]
+    ]
+  ];
+
+  $schema['resource_newest_entity'] = [
+    'fields' => [
+      'license_variation_id' => [
+        'type' => 'int'
+      ],
+      'sku' => [
+        'type' => 'varchar',
+        'length' => 255,
+      ],
+      'entity_type' => [
+        'type' => 'varchar',
+        'length' => 255,
+      ],
+      'bundle' => [
+        'type' => 'varchar',
+        'length' => 255,
+      ],
+      'op' => [
+        'type' => 'varchar',
+        'length' => 255
+      ],
     ]
   ];
 
@@ -68,6 +104,10 @@ function license_resource_entity_schema() {
       'op' => [
         'type' => 'varchar',
         'length' => 255,
+      ],
+      'data' => [
+        'type' => 'blob',
+        'size' => 'normal'
       ]
     ]
   ];
