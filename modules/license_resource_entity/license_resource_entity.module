@@ -17,7 +17,7 @@ function license_resource_entity_entity_access(EntityInterface $entity, $op, Acc
 * Implements hook_ENTITY_TYPE_insert
 */
 function license_resource_entity_node_insert(EntityInterface $entity) {
-  drupal_set_message('node insert');
+  
   // First check if we have any licenses working for this bundle
   if ($entity->status) {
     $type = $entity->bundle();
