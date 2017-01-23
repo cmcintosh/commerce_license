@@ -20,10 +20,16 @@ use Drupal\Core\Ajax\HtmlCommand;
 */
 class ExistingEntityResource extends ConditionPluginBase {
 
+  /**
+   * {@inheritdoc}
+   */
   public function summary() {
     return t('Select a entity type, entity, and action to provide access for.');
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
 
     parent::buildConfigurationForm($form, $form_state);
@@ -64,10 +70,9 @@ class ExistingEntityResource extends ConditionPluginBase {
     return $form;
   }
 
-  public function validateConfigurationForm(array &$form = null, FormStateInterface $form_state) {
-
-  }
-
+  /**
+   * {@inheritdoc}
+   */
   public function submitConfigurationForm(array &$form = null, FormStateInterface $form_state) {
     $values = $form_state->getValues();
     $resources = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['resources'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['resources'];

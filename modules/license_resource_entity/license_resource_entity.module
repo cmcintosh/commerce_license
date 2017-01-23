@@ -10,6 +10,12 @@ use Drupal\Core\Session\AccountInterface;
 *  - This is used to override default behavior where needed.
 */
 function license_resource_entity_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
+  if (license_resource_entity_has_access($entity, $op, $account)) {
+  //  return AccessResult::allowed();
+  }
+  else {
+  //  return AccessResult::forbidden();
+  }
   return AccessResult::neutral();
 }
 
@@ -17,7 +23,7 @@ function license_resource_entity_entity_access(EntityInterface $entity, $op, Acc
 * Implements hook_ENTITY_TYPE_insert
 */
 function license_resource_entity_node_insert(EntityInterface $entity) {
-  
+
   // First check if we have any licenses working for this bundle
   if ($entity->status) {
     $type = $entity->bundle();
@@ -110,7 +116,7 @@ function license_resource_entity_has_access(EntityInterface $entity, $op, Accoun
   $result = $query->execute()->fetchAllAssoc('id');
 
   if ( count($result) > 0) {
-
+    return true;
   }
 
   return false;

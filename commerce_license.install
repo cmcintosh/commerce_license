@@ -1,0 +1,52 @@
+<?php
+
+/**
+* Implements hook_schema
+*/
+function commerce_license_schema() {
+
+  $schema['commerce_license_customer_license'] = [
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'order_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'license_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'variation_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'updated' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'expiration' => [
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'data' => [
+        'type' => 'blob',
+        'size' => 'normal'
+      ],
+    ],
+    'primary key' => ['id'],
+  ];
+
+  return $schema;
+}

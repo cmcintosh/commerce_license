@@ -1,0 +1,23 @@
+<?php
+
+/**
+* Implements hook_schema.
+*/
+function license_resource_role() {
+
+  $schema['license_resource_role'] = [
+    'description' => t('Contains the role information for licenses based on the sku.'),
+    'fields' => [
+      'sku' => [
+        'type' => 'varchar',
+        'length' => 255
+      ],
+      'role' => [
+        'type' => 'varchar',
+        'length' => 255,
+      ]
+    ],
+  ];
+
+  return $schema;
+}

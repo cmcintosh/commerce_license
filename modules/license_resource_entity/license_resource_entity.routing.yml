@@ -1,0 +1,7 @@
+license_resource_entity.manual:
+  path: 'admin/commerce/licenses/manual'
+  defaults:
+    _title: 'Manual Content Access'
+    _form: '\Drupal\license_resource_entity\Form\ManualResourceAccess'
+  requirements:
+    _permission: 'administer commerce_license'

@@ -1,0 +1,5 @@
+license_resource_entity.manual:
+  route_name: license_resource_entity.manual
+  title: 'Give Content Access'
+  appears_on:
+    - entity.commerce_license.collection
