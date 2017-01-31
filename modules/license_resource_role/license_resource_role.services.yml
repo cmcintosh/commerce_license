@@ -2,3 +2,7 @@ services:
   pluin.manager.resource_role:
     class: Drupal\license_resource_role\Pluin\Commerce\LicenseResource\RoleResource
     aruments: ['@container.namespaces', '@cache.discovery', '@module_handler']
+  resource_role_subscriber:
+    class: '\Drupal\license_resource_role\EventSubscriber\EventHandler'
+    tags:
+      - { name: 'event_subscriber' }

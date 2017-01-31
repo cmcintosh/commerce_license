@@ -22,29 +22,38 @@ class RoleResource extends ConditionPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function summary() {
-    return t('Select a role to award a user with on completion of the order.');
+  public function defaultConfiguration() {
+    return [
+      'commerce_product_variation' => NULL,
+    ] + parent::defaultConfiguration();
   }
 
   /**
    * {@inheritdoc}
    */
-   public function buildConfiurationForm(array $form, FormStateInterface $form_state) {
-     parent::buildConfigurationForm($form, $form_state);
+  public function summary() {
+    return t('Select a role to award a user with on completion of the order.');
+  }
+
+  public function evaluate() { }
+
+  public function execute() { }
+
+  /**
+   * {@inheritdoc}
+   */
+   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
 
      // @TODO: see if there is a cleaner way to retrieve this.
-     $values = $form_state->getValues();
-     $default = $this->getDefaultValue($values);
+     $default = isset($this->configuration['resource_role']) ? $this->configuration['resource_role'] : -1;
 
      $form['resource_role'] = [
        '#type' => 'select',
        '#title' => t('Role'),
        '#options' => $this->getRoles(),
-       '#default_value' => isset($default) ? $defaulte : -1,
+       '#default_value' => $default,
 
      ];
-
-     $form['#submit'][] = [this, 'submitConfigurationForm'];
 
      return $form;
    }
@@ -52,26 +61,13 @@ class RoleResource extends ConditionPluginBase {
    /**
    * {@inheritdoc}
    */
-   public function submitConfigurationForm(array $form = null, FormStateInterface $form_state) {
-     $values = $form_state->getValues();
-     $resources = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['resources'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['resources'];
-     $sku = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['sku'][0]['value'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['sku'][0]['value'];
+   public function submitConfigurationForm(array &$form = null, FormStateInterface $form_state) {
 
-     // Loop and update our resource pluin settings
-     foreach($resources as $resource) {
-       if (is_array($resource)){
-         if ($resource['target_plugin_id'] == 'resource_role') {
-           $data = [
-             'sku' => $sku,
-             'role' => $resource['target_plugin_configuration']['resource_role'],
-           ];
-           db_merge('license_resource_role')
-             ->key(array('sku' => $data['sku']))
-             ->fields($data)
-             ->execute();
-         }
-       }
-     }
+    $this->configuration['negate'] = $form_state->getValue('negate');
+    if ($form_state->hasValue('context_mapping')) {
+      $this->setContextMapping($form_state->getValue('context_mapping'));
+    }
+
    }
 
    /**
@@ -83,34 +79,12 @@ class RoleResource extends ConditionPluginBase {
      ];
 
      $entities = user_roles(TRUE);
+
      foreach($entities as $id => $role) {
-       $roles[$id] = $role->name;
+       $roles[$id] = $id;
      }
 
      return $roles;
-   }
-
-   /**
-   * Helper function that returns the default value for a sku.
-   */
-   private function getDefaultValue($values) {
-     $resources = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['resources'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['resources'];
-     $sku = isset($values['variations']['form']['inline_entity_form']['resources']) ? $values['variations']['form']['inline_entity_form']['sku'][0]['value'] : $values['variations']['form']['inline_entity_form']['entities'][0]['form']['sku'][0]['value'];
-     $defaults = null;
-     $default_entity = null;
-
-     if ( $sku ) {
-       $query = \Drupal::database()
-         ->select('resource_role', 'rr');
-
-       $query->condition('rr.sku', $sku, '=' );
-
-       $query->addfield('rr', 'sku');
-       $query->addField('rr', 'role');
-       $result = $query->execute()->fetchAllAssoc('sku');
-       return isset($result[$sku]) ? $result[$sku]->role : -1;
-     }
-     return -1;
    }
 
 }

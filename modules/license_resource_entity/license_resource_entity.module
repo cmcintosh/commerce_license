@@ -10,14 +10,27 @@ use Drupal\Core\Session\AccountInterface;
 *  - This is used to override default behavior where needed.
 */
 function license_resource_entity_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
-  if (license_resource_entity_has_access($entity, $op, $account)) {
-  //  return AccessResult::allowed();
+  $entity_type = $entity->getEntityTypeId();
+  $entity_id = $entity->id();
+  $bundle = $entity->bundle();
+  if ( $acl_id = acl_get_id_by_name('resource_entity', "resource_entity_{$entity_type}_{$entity_id}") ){
+    if ($account == null || $account->id() < 1) {
+      return AccessResult::forbidden();
+    }
+    $has_user = acl_has_user($acl_id, $account->id());
+    return AccessResult::allowedIf( ($has_user == 1 || $account->hasPermission('administer nodes')) );
+  }
+  else if ( $acl_id = acl_get_id_by_name('resource_entity', "resource_entity_{$entity_type}_{$bundle}") ) {
+    return AccessResult::forbidden();
   }
   else {
-  //  return AccessResult::forbidden();
+    return AccessResult::neutral();
   }
-  return AccessResult::neutral();
 }
+
+/**
+* Implements hook_node_grants
+*/
 
 /**
 * Implements hook_ENTITY_TYPE_insert
@@ -38,32 +51,42 @@ function license_resource_entity_node_insert(EntityInterface $entity) {
     $query->condition('re.bundle', $type, '=');
     $results = $query->execute()->fetchAllAssoc('uid');
 
-    foreach($results as $uid => $row) {
-      $data = unserialize($row->data);
+    // Create the ACL for the new node.
+    $entity_id = $entity->id();
+    acl_create_acl('resource_entity', "resource_entity_node_{$entity_id}");
+    $acl_id = acl_get_id_by_name('resource_entity', "resource_entity_node_{$entity_id}");
 
-      if ($data['resource']['resource_new_entity']['quantity'] > 0) {
-        // add access for this user.
-        $data = [
-          'customer_license_id' => $row->id,
-          'uid' => $uid,
-          'entity_type' => 'node',
-          'id' => $entity->id(),
-          'op' => 'view'
-        ];
-        $conn = Database::getConnection();
-        $conn->insert('resource_entity_access')->fields($data)->execute();
+    foreach($results as $uid => $row) {
+
+      $row->data = unserialize($row->data);
+
+      if ($row->data['resource']['resource_new_entity']['quantity'] > 0) {
+        acl_add_user($acl_id, $uid);
+        acl_create_acl('content_access', "view_{$entity_id}");
+        $c_aclid = acl_get_id_by_name('content_access', "view_{$entity_id}");
+        db_merge('acl_user')
+          ->key(['acl_id' => $c_aclid, 'uid' => $uid])
+          ->fields([
+            'acl_id' => $c_aclid,
+            'uid' => $uid
+          ]);
+
 
         // Next update remaining quantity.
-        $data['resource']['resource_new_entity']['quantity'] = $data['resource']['resource_new_entity']['quantity'] - 1;
+        $row->data['resource']['resource_new_entity']['quantity'] =
+          $row->data['resource']['resource_new_entity']['quantity'] - 1;
         db_merge('commerce_license_customer_license')
         ->key(array('id' => $row->id))
         ->fields([
-          'data' => serialize($data),
+          'data' => serialize($row->data),
         ])
         ->execute();
       }
     }
-
+    // Rebuild our access for the node.
+    $node = node_load($entity_id);
+    \Drupal::entityManager()->getAccessControlHandler('node')
+      ->writeGrants($node);
   }
 }
 
@@ -91,33 +114,7 @@ function license_resource_license_variation_delete(Drupal\Core\Entity\EntityInte
 */
 function license_resource_entity_has_access(EntityInterface $entity, $op, AccountInterface $account) {
 
-  // Perform a check in the access table and return true / false.
-  $data = [
-    'uid' => $account->id(),
-    'entity_type' => $entity->getEntityTypeId(),
-    'id' => $entity->id(),
-    'op' => $op,
-  ];
-  $query = \Drupal::database()
-    ->select('resource_entity_access', 'cl');
 
-  $query->condition('cl.order_id', $order->getOrderNumber() );
-  $query->condition('cl.license_id', $license_variation->getLicenseId() );
-  $query->condition('cl.variation_id', $license_variation->get('variation_id')->value );
-  $query->condition('cl.uid', $order->getCustomerId() );
-  $query->join('commerce_license_customer_license', 'cul', 'cul.id = cl.customer_license_id');
 
-  $query->addField('cl', 'id');
-  $query->addField('cl', 'uid');
-  $query->addField('cul', 'expiration');
-  $query->orderBy('cul.expiration', 'DESC');
-
-  $query->allowRowCount = TRUE;
-  $result = $query->execute()->fetchAllAssoc('id');
-
-  if ( count($result) > 0) {
-    return true;
-  }
-
-  return false;
+  return true;
 }

@@ -82,8 +82,8 @@ function commerce_license_entity_update(EntityInterface $entity) {
   try {
 
     if (is_a($entity, 'Drupal\commerce_order\Entity\Order')) {
+
           if ($entity->getCompletedTime() > 0) {
-            
             $items = $entity->getItems();
             // loop through to check for one.
             foreach($items as $delta => $order_item) {
@@ -163,9 +163,11 @@ function processLicenseVariation($order, $order_item, $license_variation) {
 
     // we need to call the License Issued event.
     // Some resources / conditions may need to respond.
+    drupal_set_message('Prior to event displatch');
     $dispatcher = \Drupal::service('event_dispatcher');
-    $event = new LicenseIssuedEvent($license_variation, $data);
+    $event = new LicenseIssuedEvent($license_variation, $order, $data);
     $dispatcher->dispatch(LicenseEvents::LICENSE_ISSUED, $event);
+    drupal_set_message('After to event displatch');
 
   } catch (Exception $e) {
     watchdog_exception('commerce_license', $e);

@@ -4,7 +4,7 @@ dependencies:
   enforced:
     module:
       - commerce_license
-label: 'Default'
-id: default
+label: 'License'
+id: license
 purchasableEntityType: commerce_license_variation
 orderType: default

@@ -91,59 +91,64 @@ class EventHandler implements EventSubscriberInterface{
     }
   }
 
+  /**
+  * Called when a license is issued.
+  */
   public function onLicenseIssued(LicenseIssuedEvent $event) {
 
-      $license_variation = $event->getLicenseVariation();
-      $customer_license = $event->getCustomerLicense();
+      $customer = $event->getCustomer();
+      $license = $event->getLicenseVariation();
 
-      // We need to get our customer license id from the database.
-      $query = \Drupal::database()
-        ->select('commerce_license_customer_license', 're');
-      $query->condition('re.order_id', $customer_license['order_id'], '=' );
-      $query->condition('re.variation_id', $license_variation->get('variation_id')->value, '=');
+      // We need to issue the license to the customer.
+      foreach($license->resources as $delta => $resource) {
+        // Handle for existing entity
+        $data = $resource->target_plugin_configuration;
+        if ($resource->target_plugin_configuration['id'] == 'resource_existing_entity') {
+          $acl_id = acl_get_id_by_name('resource_entity', "resource_entity_{$data['resource_entity_type']}_{$data['resource_entity']}");
+          acl_add_user($acl_id, $customer->id());
 
-      $query->addField('re', 'id');
-      $result = $query->execute()->fetchAllAssoc('id');
+          if ($data['resource_entity_type'] == 'node') {
+            $acl_id = null;
+            if (! ($acl_id = acl_get_id_by_name('content_access', 'view_' . $data['resource_entity'] ) ) ) {
+                acl_create_acl( 'content_access', 'view_' . $data['resource_entity']);
+            }
+            $acl_id = acl_get_id_by_name('content_access', 'view_' . $data['resource_entity'] );
 
+            db_merge('acl_user')
+              ->key(['acl_id' => $acl_id, 'uid' => $customer->id()])
+              ->fields([
+                'acl_id' => $acl_id,
+                'uid' => $customer->id()
+              ]);
+            $node = node_load($data['resource_entity']);
+            \Drupal::entityManager()->getAccessControlHandler('node')->writeGrants($node);
+          }
 
-      // For our purpose here we only need to respond if this license needs the newest entity.
-      if (isset($customer_license['data']['resource']['resource_newest_entity'])) {
+        }
+        // Handle for newest entity
+        else if ($resource->target_plugin_configuration['id'] == 'resource_newest_entity') {
+          $data = $resource->target_plugin_configuration;
 
-        // Entity query to get newest entity.
-        $query = \Drupal::entityQuery('node');
-        $query->condition('type', $customer_license['data']['resource']['resource_newest_entity']['bundle']);
-        $query->condition('status', 1);
-        $query->sort('created', 'desc');
-        $nids = $query->execute();
-        $entity_id = array_shift($nids);
+          $query = \Drupal::entityQuery('node');
+          $query->condition('type', $data['resource_entity_bundle']);
+          $query->condition('status', 1);
+          $query->sort('created', 'desc');
+          $query->accessCheck(FALSE);
+          $nids = $query->execute();
+          $entity_id = array_shift($nids);
 
-        $data = [
-          'customer_license_id' => $customer_license['customer_license'],
-          'uid' => $customer_license['uid'],
-          'entity_type' => 'node',
-          'id' => $entity_id,
-          'op' => 'view'
-        ];
+          $acl_id = acl_get_id_by_name('content_access', 'view_' . $entity_id );
+          db_merge('acl_user')
+            ->key(['acl_id' => $acl_id, 'uid' => $customer->id()])
+            ->fields([
+              'acl_id' => $acl_id,
+              'uid' => $customer->id()
+            ])->execute();
+          $node = node_load($entity_id);
+          \Drupal::entityManager()->getAccessControlHandler('node')->writeGrants($node);
+        }
 
-
-        $conn = Database::getConnection();
-        $conn->insert('resource_entity_access')->fields($data)->execute();
-      }
-
-      // or an existing entity.
-      if (isset($customer_license['data']['resource']['resource_existing_entity'])) {
-
-        $data = [
-          'customer_license_id' => $customer_license['customer_license'],
-          'uid' => $customer_license['uid'],
-          'entity_type' => 'node',
-          'id' => $customer_license['data']['resource']['resource_existing_entity']['entity_id'],
-          'op' => 'view'
-        ];
-        
-
-        $conn = Database::getConnection();
-        $conn->insert('resource_entity_access')->fields($data)->execute();
+        // No handling for new entities here.
       }
 
   }
