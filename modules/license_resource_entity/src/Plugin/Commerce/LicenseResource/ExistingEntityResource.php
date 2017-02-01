@@ -102,7 +102,7 @@ class ExistingEntityResource extends ConditionPluginBase {
 
     $form['resource_entity_type']['#default_value'] = $form_state->getValue('resource_entity_type');
     $form['resource_entity']['#default_value'] = $default_entity;
-    ksm($form);
+
     return $form;
   }
 

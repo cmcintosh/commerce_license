@@ -1,0 +1,14 @@
+<?php
+
+use Drupal\Core\Field\FieldDefinitionInterface ;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Field\FieldItemListInterface;
+
+/**
+* Implements hook_entity_field_access
+* - limits access to selected fields. based on who owns rights.
+*/
+function license_resource_fields_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL) {
+
+  return AccessResult::neutral();
+}

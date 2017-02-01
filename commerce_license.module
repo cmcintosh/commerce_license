@@ -88,6 +88,7 @@ function commerce_license_entity_update(EntityInterface $entity) {
             // loop through to check for one.
             foreach($items as $delta => $order_item) {
               if ( is_a($order_item->getPurchasedEntity(), 'Drupal\commerce_license\Entity\LicenseVariation') ) {
+                
                 if ( licenseNotProcessed($entity, $order_item, $order_item->getPurchasedEntity()) ) {
                   processLicenseVariation($entity, $order_item, $order_item->getPurchasedEntity());
                 }
@@ -96,8 +97,7 @@ function commerce_license_entity_update(EntityInterface $entity) {
           }
     }
   } catch (Exception $e) {
-    watchdog_exception('commerce_license', $e);
-    throw $e;
+
   }
 }
 
@@ -255,7 +255,7 @@ function template_preprocess_commerce_license_variation(array &$variables) {
   $license = $license_variation->getLicense();
 
   $variables['license_variation_entity'] = $license_variation;
-  $variables['license_url'] = $license->toUrl();
+  $variables['license_url'] = ($license !== NULL) ? $license->toUrl() : '';
   $variables['license_variation'] = [];
   foreach (Element::children($variables['elements']) as $key) {
     $variables['license_variation'][$key] = $variables['elements'][$key];

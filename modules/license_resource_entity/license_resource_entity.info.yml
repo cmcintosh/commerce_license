@@ -6,3 +6,5 @@ core: 8.x
 dependencies:
   - commerce_payment
   - commerce_license
+  - acl
+  - content_access
