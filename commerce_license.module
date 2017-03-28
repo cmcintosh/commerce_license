@@ -88,7 +88,7 @@ function commerce_license_entity_update(EntityInterface $entity) {
             // loop through to check for one.
             foreach($items as $delta => $order_item) {
               if ( is_a($order_item->getPurchasedEntity(), 'Drupal\commerce_license\Entity\LicenseVariation') ) {
-                
+
                 if ( licenseNotProcessed($entity, $order_item, $order_item->getPurchasedEntity()) ) {
                   processLicenseVariation($entity, $order_item, $order_item->getPurchasedEntity());
                 }
@@ -138,10 +138,11 @@ function processLicenseVariation($order, $order_item, $license_variation) {
   // the information that can be altered as needed based on the conditions.
   try {
     $timestamp = time();
+    $licenseId = $license_variation->getLicenseId();
     $data = [
         'uid'          => $order->getCustomerId(),
         'order_id'     => $order->getOrderNumber(),
-        'license_id'   => $license_variation->getLicenseId(),
+        'license_id'   => $licenseId ? $licenseId : 0,
         'variation_id' => $license_variation->get('variation_id')->value,
         'created'      => $timestamp,
         'updated'      => $timestamp,
